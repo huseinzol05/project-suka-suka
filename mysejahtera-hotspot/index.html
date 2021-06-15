@@ -26,7 +26,8 @@
     <p>Google Map will take a few seconds to load the data, wait ya. Click on any circles to get address and total
         active
         case in 1km radius.</p>
-    <p>Give Husein a break, he knows this website is ugly.</p>
+    <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser, I tried
+        on my phone, it crashed after changed a few states.</p>
 
     <label>Last update, 2021-06-15, Choose a state:</label>
 
@@ -46,6 +47,7 @@
         <option value="perak">Perak</option>
         <option value="selangor">Selangor</option>
         <option value="terengganu">Terengganu</option>
+        <option value="labuan">Labuan</option>
     </select>
     <br></br>
 
@@ -69,7 +71,8 @@
             'pahang': 9,
             'perak': 9.5,
             'selangor': 10,
-            'terengganu': 8.5
+            'terengganu': 8.5,
+            'labuan': 13
         }
         center = {
             'kl': [3.1392120930232563, 101.69246448837208],
@@ -86,7 +89,8 @@
             'pahang': [4.071478952606635, 102.32340633175355],
             'perak': [4.733874, 101.14707000581394],
             'selangor': [3.355404307017544, 101.50504664035088],
-            'terengganu': [4.825278525714285, 102.89730278285715]
+            'terengganu': [4.825278525714285, 102.89730278285715],
+            'labuan': [5.314517, 115.221615]
         }
 
         data = {
@@ -104,7 +108,8 @@
             'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Pahang-points.json-points-cases.json',
             'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Perak-points.json-points-cases.json',
             'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor-points.json-points-cases.json',
-            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Terengganu-points.json-points-cases.json'
+            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Terengganu-points.json-points-cases.json',
+            'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Labuan-points.json-points-cases.json'
         }
 
         function initMap() {
