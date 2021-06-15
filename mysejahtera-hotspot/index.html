@@ -48,6 +48,8 @@
         <option value="selangor">Selangor</option>
         <option value="terengganu">Terengganu</option>
         <option value="labuan">Labuan</option>
+        <option value="valley">Klang Valley</option>
+        <option value="all">All (at your own risk)</option>
     </select>
     <br></br>
 
@@ -72,7 +74,9 @@
             'perak': 9.5,
             'selangor': 10,
             'terengganu': 8.5,
-            'labuan': 12
+            'labuan': 12,
+            'valley': 9,
+            'all': 7
         }
         center = {
             'kl': [3.1392120930232563, 101.69246448837208],
@@ -90,7 +94,9 @@
             'perak': [4.733874, 101.14707000581394],
             'selangor': [3.355404307017544, 101.50504664035088],
             'terengganu': [4.825278525714285, 102.89730278285715],
-            'labuan': [5.314517, 115.221615]
+            'labuan': [5.314517, 115.221615],
+            'valley': [3.1392120930232563, 101.69246448837208],
+            'all': [3.832320, 108.196662]
         }
 
         data = {
@@ -119,6 +125,86 @@
                 map = new google.maps.Map(document.getElementById("map"), {
                     center: { lat: center[s][0], lng: center[s][1] },
                     zoom: zoom[s],
+                    styles: [
+                        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                        {
+                            featureType: "administrative.locality",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#d59563" }],
+                        },
+                        {
+                            featureType: "poi",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#d59563" }],
+                        },
+                        {
+                            featureType: "poi.park",
+                            elementType: "geometry",
+                            stylers: [{ color: "#263c3f" }],
+                        },
+                        {
+                            featureType: "poi.park",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#6b9a76" }],
+                        },
+                        {
+                            featureType: "road",
+                            elementType: "geometry",
+                            stylers: [{ color: "#38414e" }],
+                        },
+                        {
+                            featureType: "road",
+                            elementType: "geometry.stroke",
+                            stylers: [{ color: "#212a37" }],
+                        },
+                        {
+                            featureType: "road",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#9ca5b3" }],
+                        },
+                        {
+                            featureType: "road.highway",
+                            elementType: "geometry",
+                            stylers: [{ color: "#746855" }],
+                        },
+                        {
+                            featureType: "road.highway",
+                            elementType: "geometry.stroke",
+                            stylers: [{ color: "#1f2835" }],
+                        },
+                        {
+                            featureType: "road.highway",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#f3d19c" }],
+                        },
+                        {
+                            featureType: "transit",
+                            elementType: "geometry",
+                            stylers: [{ color: "#2f3948" }],
+                        },
+                        {
+                            featureType: "transit.station",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#d59563" }],
+                        },
+                        {
+                            featureType: "water",
+                            elementType: "geometry",
+                            stylers: [{ color: "#17263c" }],
+                        },
+                        {
+                            featureType: "water",
+                            elementType: "labels.text.fill",
+                            stylers: [{ color: "#515c6d" }],
+                        },
+                        {
+                            featureType: "water",
+                            elementType: "labels.text.stroke",
+                            stylers: [{ color: "#17263c" }],
+                        },
+                    ],
                 });
 
                 function setMouseOverEvent(circle) {
@@ -164,36 +250,76 @@
                     });
                 }
 
-                $.ajax(data[s], {
-                    dataType: 'json',
-                    timeout: 5000,
-                    success: function (data, status, xhr) {
-
-                        for (var i = 0; i < data.length; i++) {
-                            if (data[i][2] > 0) {
-                                const Circle = new google.maps.Circle({
-                                    strokeColor: "#FF0000",
-                                    strokeOpacity: 0.8,
-                                    strokeWeight: 2,
-                                    fillColor: "#FF0000",
-                                    fillOpacity: 0.35,
-                                    map,
-                                    center: { lat: data[i][0], lng: data[i][1] },
-                                    radius: data[i][2],
-                                });
-                                //setMouseOverEvent(Circle);
-                                makeClickable(Circle);
-
-
+                function callback(all) {
+                    for (var i = 0; i < all.length; i++) {
+                        if (all[i][2] > 0) {
+                            let pos = { lat: all[i][0], lng: all[i][1] };
+                            let cases = all[i][2];
+                            let color;
+                            switch (true) {
+                                case cases > 0 && cases <= 10:
+                                    color = '#a2ff00';
+                                    break;
+                                case cases > 10 && cases <= 20:
+                                    color = '#f2ff00';
+                                    break;
+                                case cases > 20 && cases <= 40:
+                                    color = '#ffd000';
+                                    break;
+                                case cases > 40 && cases <= 60:
+                                    color = '#ff9500';
+                                    break;
+                                case cases > 60 && cases <= 80:
+                                    color = '#ff5900';
+                                    break;
+                                case cases > 80:
+                                    color = '#ff0000';
+                                    break;
                             }
 
+                            const Circle = new google.maps.Circle({
+                                strokeColor: color,
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: color,
+                                fillOpacity: 0.45,
+                                map,
+                                center: pos,
+                                radius: cases,
+                            });
+                            
+                            makeClickable(Circle);
                         }
-
-                    },
-                    error: function (jqXhr, textStatus, errorMessage) {
-                        alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot, please try again');
                     }
-                });
+                }
+
+                function build(arr) {
+                    let all=[];
+                    arr.forEach(element => {
+                        $.ajax(element, {
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (data, status, xhr) {
+                                callback(all.concat(data));
+                            },
+                            error: function (jqXhr, textStatus, errorMessage) {
+                                alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot, please try again');
+                            }
+                        });
+                    });
+                }
+
+                switch(true) {
+                    case s == 'all':
+                        build(Object.values(data));
+                        break;
+                    case s == 'valley':
+                        build([data['kl'], data['selangor'], data['putrajaya']]);
+                        break;
+                    case s !== 'all' && s !== 'valley':
+                        build([data[s]]);
+                        break;
+                }
             }
 
             init();
