@@ -10,7 +10,7 @@ Generate resolution points using meshgrid and request each points to MySejahtera
 resolution = 0.005
 ```
 
-2. Run [get-malasia-points-case.ipynb](get-malasia-points-case.ipynb) to request each resolution points to MySejahtera Hotspot API.
+2. Run [get-malaysia-points-case.ipynb](get-malaysia-points-case.ipynb) to request each resolution points to MySejahtera Hotspot API.
 
 ```python
 resolution_points = glob('data/*-points.json')
