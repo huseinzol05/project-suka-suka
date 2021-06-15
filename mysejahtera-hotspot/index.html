@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MySejahtera Hotspot</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <style>
+        #map {
+            height: 70%;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    </style>
+
+    <p>
+        Get the code and data at
+        <a
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">hhttps://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>
+    </p>
+    <p>Google Map will take a few seconds to load the data, wait ya. Click on any circles to get address and total
+        active
+        case in 1km radius.</p>
+    <p>Give Husein a break, he knows this website is ugly.</p>
+
+    <label>Choose a state:</label>
+
+    <select id="states">
+        <option value="kl">Federal Territory of Kuala Lumpur</option>
+        <option value="perlis">Perlis</option>
+        <option value="sabah">Sabah</option>
+        <option value="putrajaya">Federal Territory of Putrajaya</option>
+        <option value="kedah">Kedah</option>
+        <option value="sarawak">Sarawak</option>
+        <option value="penang">Penang</option>
+        <option value="johor">Johor</option>
+        <option value="kelantan">Kelantan</option>
+        <option value="melaka">Melaka</option>
+        <option value="negeri-sembilan">Negeri Sembilan</option>
+        <option value="pahang">Pahang</option>
+        <option value="perak">Perak</option>
+        <option value="selangor">Selangor</option>
+        <option value="terengganu">Terengganu</option>
+    </select>
+    <br></br>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+
+        let map;
+        zoom = {
+            'kl': 11.5,
+            'perlis': 11,
+            'sabah': 8,
+            'putrajaya': 13,
+            'kedah': 9,
+            'sarawak': 7,
+            'penang': 10.5,
+            'johor': 9,
+            'kelantan': 9,
+            'melaka': 10.5,
+            'negeri-sembilan': 9.5,
+            'pahang': 9,
+            'perak': 9.5,
+            'selangor': 10,
+            'terengganu': 8.5
+        }
+        center = {
+            'kl': [3.1392120930232563, 101.69246448837208],
+            'perlis': [6.524751999999999, 100.22751252631578],
+            'sabah': [5.27816915, 116.97592164999999],
+            'putrajaya': [2.933356648648649, 101.68667875675675],
+            'kedah': [5.861430566265059, 100.67029332530122],
+            'sarawak': [2.738490452054794, 113.39022178082192],
+            'penang': [5.326611172413791, 100.41983951724136],
+            'johor': [1.891816231746032, 103.49781690793652],
+            'kelantan': [5.199608448780487, 102.06351577073173],
+            'melaka': [2.290535240310077, 102.30847203100777],
+            'negeri-sembilan': [2.618115251655629, 102.08174941721853],
+            'pahang': [4.071478952606635, 102.32340633175355],
+            'perak': [4.733874, 101.14707000581394],
+            'selangor': [3.355404307017544, 101.50504664035088],
+            'terengganu': [4.825278525714285, 102.89730278285715]
+        }
+
+        data = {
+            'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Federal%20Territory%20of%20Kuala%20Lumpur-points.json-points-cases.json',
+            'perlis': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Perlis-points.json-points-cases.json',
+            'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Sabah-points.json-points-cases.json',
+            'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
+            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Kedah-points.json-points-cases.json',
+            'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Sarawak-points.json-points-cases.json',
+            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Penang-points.json-points-cases.json',
+            'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Johor-points.json-points-cases.json',
+            'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Kelantan-points.json-points-cases.json',
+            'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Melaka-points.json-points-cases.json',
+            'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Negeri%20Sembilan-points.json-points-cases.json',
+            'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Pahang-points.json-points-cases.json',
+            'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Perak-points.json-points-cases.json',
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor-points.json-points-cases.json',
+            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/Terengganu-points.json-points-cases.json'
+        }
+
+        function initMap() {
+
+            function init() {
+                s = $("#states").val()
+                map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: center[s][0], lng: center[s][1] },
+                    zoom: zoom[s],
+                });
+
+                function setMouseOverEvent(circle) {
+                    google.maps.event.addListener(circle, 'mouseover', function (e) {
+                        this.setOptions({
+                            fillColor: "#000"
+                        });
+                    });
+
+                    google.maps.event.addListener(circle, 'mouseout', function (e) {
+                        this.setOptions({
+                            fillColor: "#FF0000"
+                        });
+                    });
+                }
+
+                var infoWin = new google.maps.InfoWindow();
+
+                function makeClickable(circle) {
+                    google.maps.event.addListener(circle, "click", function () {
+                        lat = circle.center.lat().toString()
+                        long = circle.center.lng().toString()
+                        nominatim = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + long + '&format=json'
+                        address = 'Not available'
+                        $.ajax(nominatim, {
+                            async: false,
+                            dataType: 'json',
+                            timeout: 2000,
+                            success: function (data, status, xhr) {
+                                try { address = data['display_name'] }
+                                catch (err) { console.log(err) }
+
+                            },
+                            error: function (jqXhr, textStatus, errorMessage) {
+                            }
+                        })
+                        latlong_string = 'Lat: ' + lat + ', ' + 'Long: ' + long + '<br>'
+                        address_string = address + '<br>'
+                        case_string = 'Total case: ' + circle.radius.toString()
+                        infoWin.setPosition(circle.getCenter());
+                        infoWin.setContent(latlong_string + address_string + case_string);
+                        infoWin.open(map);
+                    });
+                }
+
+                $.ajax(data[s], {
+                    dataType: 'json',
+                    timeout: 5000,
+                    success: function (data, status, xhr) {
+
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i][2] > 0) {
+                                const Circle = new google.maps.Circle({
+                                    strokeColor: "#FF0000",
+                                    strokeOpacity: 0.8,
+                                    strokeWeight: 2,
+                                    fillColor: "#FF0000",
+                                    fillOpacity: 0.35,
+                                    map,
+                                    center: { lat: data[i][0], lng: data[i][1] },
+                                    radius: data[i][2],
+                                });
+                                //setMouseOverEvent(Circle);
+                                makeClickable(Circle);
+
+
+                            }
+
+                        }
+
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot, please try again');
+                    }
+                });
+            }
+
+            init();
+
+            $('#states').on('change', function () {
+                init();
+            });
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=&v=weekly"
+        async></script>
+</body>
+
+</html>
