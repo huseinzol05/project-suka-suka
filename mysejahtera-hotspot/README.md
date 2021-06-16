@@ -8,7 +8,7 @@ Generate resolution points using meshgrid and request each points to MySejahtera
 
 ```python
 resolutions = {'Sarawak': 0.005, 'Sabah': 0.005}
-default_resolution = 0.002
+default_resolution = 0.004
 ```
 
 These resolution points are pretty naive, not considering rivers and non-walkable terrains.
