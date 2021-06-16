@@ -99,7 +99,7 @@
         active
         case in 1km radius.</p>
     <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser if you
-        do not see any data.</p>
+        do not see any data. Each circles been normalized by dividing with highest case in the selected state.</p>
 
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
@@ -274,7 +274,7 @@
                         })
                         latlong_string = 'Lat: ' + lat + ', ' + 'Long: ' + long + '<br>'
                         address_string = address + '<br>'
-                        case_string = 'Total case: ' + circle.radius.toString()
+                        case_string = 'Total case: ' + circle.case.toString()
                         infoWin.setPosition(circle.getCenter());
                         infoWin.setContent(latlong_string + address_string + case_string);
                         infoWin.open(map);
@@ -286,6 +286,13 @@
                     timeout: 5000,
                     success: function (data, status, xhr) {
 
+                        highest_case = 0
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i][2] > highest_case) {
+                                highest_case = data[i][2]
+                            }
+                        }
+
                         for (var i = 0; i < data.length; i++) {
                             if (data[i][2] > 0) {
                                 const circle = new google.maps.Circle({
@@ -296,7 +303,8 @@
                                     fillOpacity: 0.35,
                                     map,
                                     center: { lat: data[i][0], lng: data[i][1] },
-                                    radius: data[i][2],
+                                    radius: Math.ceil((data[i][2] / highest_case) * 100),
+                                    case: data[i][2]
                                 });
                                 //setMouseOverEvent(Circle);
                                 makeClickable(circle);
