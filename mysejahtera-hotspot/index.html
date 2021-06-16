@@ -16,6 +16,78 @@
             padding-left: 20px;
             padding-right: 20px;
         }
+
+        #description {
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        #infowindow-content .title {
+            font-weight: bold;
+        }
+
+        #infowindow-content {
+            display: none;
+        }
+
+        #map #infowindow-content {
+            display: inline;
+        }
+
+        .pac-card {
+            margin: 10px 10px 0 0;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            font-family: Roboto;
+        }
+
+        #pac-container {
+            padding-bottom: 12px;
+            margin-right: 12px;
+        }
+
+        .pac-controls {
+            display: inline-block;
+            padding: 5px 11px;
+        }
+
+        .pac-controls label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        #pac-input {
+            background-color: #fff;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 400px;
+        }
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        #title {
+            color: #fff;
+            background-color: #4d90fe;
+            font-size: 25px;
+            font-weight: 500;
+            padding: 6px 12px;
+        }
+
+        #target {
+            width: 345px;
+        }
     </style>
 
     <p>
@@ -26,8 +98,8 @@
     <p>Google Map will take a few seconds to load the data, wait ya. Click on any circles to get address and total
         active
         case in 1km radius.</p>
-    <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser, I tried
-        on my phone, it crashed after changed a few states.</p>
+    <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser if you
+        do not see any data.</p>
 
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
@@ -66,7 +138,6 @@
             }
         });
 
-        let map;
         zoom = {
             'kl': 11.5,
             'perlis': 11,
@@ -125,12 +196,47 @@
 
         function initMap() {
 
-            function init() {
-                s = $("#states").val()
-                map = new google.maps.Map(document.getElementById("map"), {
-                    center: { lat: center[s][0], lng: center[s][1] },
-                    zoom: zoom[s],
+            let map;
+            circles = [];
+            map = new google.maps.Map(document.getElementById("map"), {});
+            const input = document.getElementById("pac-input");
+            const searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+
+                if (places.length == 0) {
+                    return;
+                }
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach((place) => {
+                    if (!place.geometry || !place.geometry.location) {
+                        alert("Returned place contains no geometry");
+                        return;
+                    }
+
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
                 });
+                map.fitBounds(bounds);
+            });
+
+            function init() {
+
+                circles.forEach((circle) => {
+                    circle.setMap(null);
+                });
+                circles = [];
+
+                s = $("#states").val()
+                map.setZoom(zoom[s]);
+                map.setCenter(new google.maps.LatLng(center[s][0], center[s][1]))
 
                 function setMouseOverEvent(circle) {
                     google.maps.event.addListener(circle, 'mouseover', function (e) {
@@ -182,7 +288,7 @@
 
                         for (var i = 0; i < data.length; i++) {
                             if (data[i][2] > 0) {
-                                const Circle = new google.maps.Circle({
+                                const circle = new google.maps.Circle({
                                     strokeColor: "#FF0000",
                                     strokeOpacity: 0.8,
                                     strokeWeight: 2,
@@ -193,9 +299,8 @@
                                     radius: data[i][2],
                                 });
                                 //setMouseOverEvent(Circle);
-                                makeClickable(Circle);
-
-
+                                makeClickable(circle);
+                                circles.push(circle);
                             }
 
                         }
@@ -219,9 +324,10 @@
 </head>
 
 <body>
+    <input id="pac-input" class="controls" type="text" placeholder="Search Address" />
     <div id="map"></div>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=&v=weekly"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=places&v=weekly"
         async></script>
 </body>
 
