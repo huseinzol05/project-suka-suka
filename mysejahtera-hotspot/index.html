@@ -29,7 +29,7 @@
     <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser, I tried
         on my phone, it crashed after changed a few states.</p>
 
-    <label>Last update, 2021-06-15, Choose a state:</label>
+    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
     <select id="states">
         <option value="kl">Federal Territory of Kuala Lumpur</option>
@@ -54,6 +54,17 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script>
+
+        $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+            dataType: 'json',
+            timeout: 5000,
+            success: function (data, status, xhr) {
+                $("#last-update").text(data['last-update'])
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+                $("#last-update").text('2021-06-15')
+            }
+        });
 
         let map;
         zoom = {
