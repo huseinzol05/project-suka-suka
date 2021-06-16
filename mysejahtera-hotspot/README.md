@@ -7,8 +7,11 @@ Generate resolution points using meshgrid and request each points to MySejahtera
 1. Run [generate-malaysia-points.ipynb](generate-malaysia-points.ipynb) to generate resolution points for each states. You might want to finetune `resolution` variable to define better definition of resolution points,
 
 ```python
-resolution = 0.005
+resolutions = {'Sarawak': 0.005, 'Sabah': 0.005}
+default_resolution = 0.002
 ```
+
+These resolution points are pretty naive, not considering rivers and non-walkable terrains.
 
 2. Run [get-malaysia-points-case.ipynb](get-malaysia-points-case.ipynb) to request each resolution points to MySejahtera Hotspot API.
 
