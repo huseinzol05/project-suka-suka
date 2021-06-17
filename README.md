@@ -12,6 +12,6 @@ Generate resolution points using meshgrid and request each points to MySejahtera
 
 2. [mysejahtera-hotspot](mysejahtera-hotspot).
 
-<img alt="logo" width="100%" src="mysejahtera-hotspot/red.png">
+<img alt="logo" width="30%" src="mysejahtera-hotspot/red.png">
 
 Use [mysejahtera-density](mysejahtera-density) to generate hotspot polygons.
