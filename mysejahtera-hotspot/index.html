@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>MySejahtera Density</title>
+    <title>MySejahtera Hotspot</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <style>
         #map {
@@ -93,11 +93,13 @@
     <p>
         Get the code and data at
         <a
-            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-density">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-density</a>
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>
     </p>
-    <p>Google Map will take a few seconds to load the data, wait ya. Click on any circles to get address and total
-        active
-        case in 1km radius.</p>
+    <p>Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case and total
+        resolution points covered.</p>
+    <p>Blue color covered 0%-33% percentile of active case in Malaysia, Yellow color covered 33.1%-66% percentile of
+        active case in Malaysia, Red color covered 66.1%-100% percentile of active case in each state. Minimum 3
+        resolution points to assumed 1 cluster.</p>
     <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser if you
         do not see any data.</p>
 
@@ -105,7 +107,7 @@
 
     <select id="states">
         <option value="kl">Federal Territory of Kuala Lumpur</option>
-        <option value="perlis">Perlis</option>
+        <!-- <option value="perlis">Perlis</option>
         <option value="sabah">Sabah</option>
         <option value="putrajaya">Federal Territory of Putrajaya</option>
         <option value="kedah">Kedah</option>
@@ -119,7 +121,7 @@
         <option value="perak">Perak</option>
         <option value="selangor">Selangor</option>
         <option value="terengganu">Terengganu</option>
-        <option value="labuan">Labuan</option>
+        <option value="labuan">Labuan</option> -->
     </select>
     <br></br>
 
@@ -140,21 +142,6 @@
 
         zoom = {
             'kl': 11.5,
-            'perlis': 11,
-            'sabah': 8,
-            'putrajaya': 13,
-            'kedah': 9,
-            'sarawak': 7,
-            'penang': 10.5,
-            'johor': 9,
-            'kelantan': 9,
-            'melaka': 10.5,
-            'negeri-sembilan': 9.5,
-            'pahang': 9,
-            'perak': 9.5,
-            'selangor': 10,
-            'terengganu': 8.5,
-            'labuan': 12
         }
         center = {
             'kl': [3.1392120930232563, 101.69246448837208],
@@ -176,28 +163,28 @@
         }
 
         data = {
-            'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Kuala%20Lumpur-points.json-points-cases.json',
-            'perlis': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perlis-points.json-points-cases.json',
-            'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sabah-points.json-points-cases.json',
-            'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
-            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kedah-points.json-points-cases.json',
-            'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sarawak-points.json-points-cases.json',
-            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Penang-points.json-points-cases.json',
-            'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Johor-points.json-points-cases.json',
-            'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kelantan-points.json-points-cases.json',
-            'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Melaka-points.json-points-cases.json',
-            'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Negeri%20Sembilan-points.json-points-cases.json',
-            'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Pahang-points.json-points-cases.json',
-            'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perak-points.json-points-cases.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/selangor-points.json-points-cases.json',
-            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Terengganu-points.json-points-cases.json',
-            'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Labuan-points.json-points-cases.json'
+            'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
+            // 'perlis': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perlis-points.json-points-cases.json',
+            // 'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sabah-points.json-points-cases.json',
+            // 'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
+            // 'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kedah-points.json-points-cases.json',
+            // 'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sarawak-points.json-points-cases.json',
+            // 'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Penang-points.json-points-cases.json',
+            // 'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Johor-points.json-points-cases.json',
+            // 'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kelantan-points.json-points-cases.json',
+            // 'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Melaka-points.json-points-cases.json',
+            // 'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Negeri%20Sembilan-points.json-points-cases.json',
+            // 'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Pahang-points.json-points-cases.json',
+            // 'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perak-points.json-points-cases.json',
+            // 'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/selangor-points.json-points-cases.json',
+            // 'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Terengganu-points.json-points-cases.json',
+            // 'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Labuan-points.json-points-cases.json'
         }
 
         function initMap() {
 
             let map;
-            circles = [];
+            polygons = [];
             map = new google.maps.Map(document.getElementById("map"), {});
             const input = document.getElementById("pac-input");
             const searchBox = new google.maps.places.SearchBox(input);
@@ -229,54 +216,24 @@
 
             function init() {
 
-                circles.forEach((circle) => {
-                    circle.setMap(null);
+                polygons.forEach((polygon) => {
+                    polygon.setMap(null);
                 });
-                circles = [];
+                polygons = [];
 
                 s = $("#states").val()
                 map.setZoom(zoom[s]);
                 map.setCenter(new google.maps.LatLng(center[s][0], center[s][1]))
 
-                function setMouseOverEvent(circle) {
-                    google.maps.event.addListener(circle, 'mouseover', function (e) {
-                        this.setOptions({
-                            fillColor: "#000"
-                        });
-                    });
-
-                    google.maps.event.addListener(circle, 'mouseout', function (e) {
-                        this.setOptions({
-                            fillColor: "#FF0000"
-                        });
-                    });
-                }
-
                 var infoWin = new google.maps.InfoWindow();
 
-                function makeClickable(circle) {
-                    google.maps.event.addListener(circle, "click", function () {
-                        lat = circle.center.lat().toString()
-                        long = circle.center.lng().toString()
-                        nominatim = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + long + '&format=json'
-                        address = 'Not available'
-                        $.ajax(nominatim, {
-                            async: false,
-                            dataType: 'json',
-                            timeout: 2000,
-                            success: function (data, status, xhr) {
-                                try { address = data['display_name'] }
-                                catch (err) { console.log(err) }
-
-                            },
-                            error: function (jqXhr, textStatus, errorMessage) {
-                            }
-                        })
-                        latlong_string = 'Lat: ' + lat + ', ' + 'Long: ' + long + '<br>'
-                        address_string = address + '<br>'
-                        case_string = 'Total case: ' + circle.case.toString()
-                        infoWin.setPosition(circle.getCenter());
-                        infoWin.setContent(latlong_string + address_string + case_string);
+                function makeClickable(polygon) {
+                    google.maps.event.addListener(polygon, "click", function () {
+                        console.log(polygon);
+                        case_string = 'Average case: ' + polygon.case.toString() + '<br>'
+                        resolution_string = 'Total resolution points: ' + polygon.total.toString()
+                        infoWin.setPosition(polygon.center);
+                        infoWin.setContent(case_string + resolution_string);
                         infoWin.open(map);
                     });
                 }
@@ -286,29 +243,38 @@
                     timeout: 5000,
                     success: function (data, status, xhr) {
 
-                        for (var i = 0; i < data.length; i++) {
-                            if (data[i][2] > 0) {
-                                const circle = new google.maps.Circle({
-                                    strokeColor: "#FF0000",
+
+                        for (var key in data) {
+                            for (var i = 0; i < data[key]['polygons'].length; i++) {
+                                var total_lat = 0;
+                                var total_lng = 0
+                                for (var k = 0; k < data[key]['polygons'][i].length; k++) {
+                                    total_lat += data[key]['polygons'][i][k]['lat'];
+                                    total_lng += data[key]['polygons'][i][k]['lng'];
+                                }
+                                var center_lat = total_lat / data[key]['polygons'][i].length;
+                                var center_lng = total_lng / data[key]['polygons'][i].length;
+                                const polygon = new google.maps.Polygon({
+                                    paths: data[key]['polygons'][i],
+                                    strokeColor: data[key]['color'],
                                     strokeOpacity: 0.8,
                                     strokeWeight: 2,
-                                    fillColor: "#FF0000",
+                                    fillColor: data[key]['color'],
                                     fillOpacity: 0.35,
-                                    map,
-                                    center: { lat: data[i][0], lng: data[i][1] },
-                                    radius: Math.sqrt(data[i][2]) * 12,
-                                    case: data[i][2]
+                                    case: data[key]['data'][0][i],
+                                    total: data[key]['data'][1][i],
+                                    center: new google.maps.LatLng(center_lat, center_lng),
                                 });
-                                //setMouseOverEvent(Circle);
-                                makeClickable(circle);
-                                circles.push(circle);
+                                polygon.setMap(map);
+                                makeClickable(polygon);
+                                polygons.push(polygon);
                             }
 
                         }
 
                     },
                     error: function (jqXhr, textStatus, errorMessage) {
-                        alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-density, please try again');
+                        alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot, please try again');
                     }
                 });
             }
