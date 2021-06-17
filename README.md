@@ -5,6 +5,6 @@ Husein pet projects in here!
 
 ## List of projects
 
-1. [mysejahtera-hotspot](mysejahtera-hotspot).
+1. [mysejahtera-density](mysejahtera-density).
 
 Generate resolution points using meshgrid and request each points to MySejahtera Hotspot API to get active cases in 1KM radius.
