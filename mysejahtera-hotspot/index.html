@@ -110,20 +110,21 @@
         <option value="selangor">Selangor</option>
         <option value="kedah">Kedah</option>
         <option value="penang">Penang</option>
-        <!-- <option value="perlis">Perlis</option>
         <option value="sabah">Sabah</option>
-        <option value="putrajaya">Federal Territory of Putrajaya</option>
-        <option value="kedah">Kedah</option>
         <option value="sarawak">Sarawak</option>
-        
         <option value="johor">Johor</option>
         <option value="kelantan">Kelantan</option>
         <option value="melaka">Melaka</option>
         <option value="negeri-sembilan">Negeri Sembilan</option>
         <option value="pahang">Pahang</option>
         <option value="perak">Perak</option>
-        <option value="selangor">Selangor</option>
         <option value="terengganu">Terengganu</option>
+        <!-- <option value="perlis">Perlis</option>
+        
+        <option value="putrajaya">Federal Territory of Putrajaya</option>
+        
+        
+        
         <option value="labuan">Labuan</option> -->
     </select>
     <br></br>
@@ -185,21 +186,15 @@
             'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
             'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
             'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
-            // 'perlis': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perlis-points.json-points-cases.json',
-            // 'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sabah-points.json-points-cases.json',
-            // 'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
-            // 'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kedah-points.json-points-cases.json',
-            // 'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sarawak-points.json-points-cases.json',
-            // 'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Penang-points.json-points-cases.json',
-            // 'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Johor-points.json-points-cases.json',
-            // 'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kelantan-points.json-points-cases.json',
-            // 'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Melaka-points.json-points-cases.json',
-            // 'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Negeri%20Sembilan-points.json-points-cases.json',
-            // 'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Pahang-points.json-points-cases.json',
-            // 'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perak-points.json-points-cases.json',
-            // 'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/selangor-points.json-points-cases.json',
-            // 'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Terengganu-points.json-points-cases.json',
-            // 'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Labuan-points.json-points-cases.json'
+            'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
+            'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
+            'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
+            'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
+            'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
+            'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
+            'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
+            'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
+            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json'
         }
 
         function initMap() {
@@ -275,6 +270,8 @@
                                 }
                                 var center_lat = total_lat / data[key]['polygons'][i].length;
                                 var center_lng = total_lng / data[key]['polygons'][i].length;
+
+                                if (center_lat.toFixed(6) == data[key]['polygons'][i][0]['lat'].toFixed(6) | center_lng.toFixed(6) == data[key]['polygons'][i][0]['lng'].toFixed(6)) continue;
                                 const polygon = new google.maps.Polygon({
                                     paths: data[key]['polygons'][i],
                                     strokeColor: data[key]['color'],
@@ -285,6 +282,8 @@
                                     case: data[key]['data'][0][i],
                                     total: data[key]['data'][1][i],
                                     center: new google.maps.LatLng(center_lat, center_lng),
+                                    polys: data[key]['polygons'][i],
+                                    centers: [center_lat, center_lng]
                                 });
                                 polygon.setMap(map);
                                 makeClickable(polygon);
