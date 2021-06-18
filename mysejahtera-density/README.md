@@ -1,4 +1,4 @@
-# MySejahtera Hotspot
+# MySejahtera Density
 
 Generate resolution points using meshgrid and request each points to MySejahtera Hotspot API to get active cases in 1KM radius.
 
