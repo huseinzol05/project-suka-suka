@@ -1,0 +1,5 @@
+geopandas
+sklearn
+numpy
+shapely
+libpysal
