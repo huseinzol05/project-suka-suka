@@ -97,8 +97,8 @@
     </p>
     <p>Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case and total
         resolution points covered.</p>
-    <p>Blue color covered 0%-33% percentile of active case in Malaysia, Yellow color covered 33.1%-66% percentile of
-        active case in Malaysia, Red color covered 66.1%-100% percentile of active case in each state. Minimum 3
+    <p>Blue color covered 0%-33% percentile of active cases, Yellow color covered 33.1%-66% percentile of
+        active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
         resolution points to assumed 1 cluster.</p>
     <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser if you
         do not see any data.</p>
@@ -107,25 +107,20 @@
 
     <select id="states">
         <option value="kl">Federal Territory of Kuala Lumpur</option>
-        <option value="selangor">Selangor</option>
-        <option value="kedah">Kedah</option>
-        <option value="penang">Penang</option>
         <option value="sabah">Sabah</option>
+        <option value="putrajaya">Federal Territory of Putrajaya</option>
+        <option value="kedah">Kedah</option>
         <option value="sarawak">Sarawak</option>
+        <option value="penang">Penang</option>
         <option value="johor">Johor</option>
         <option value="kelantan">Kelantan</option>
         <option value="melaka">Melaka</option>
         <option value="negeri-sembilan">Negeri Sembilan</option>
         <option value="pahang">Pahang</option>
         <option value="perak">Perak</option>
+        <option value="selangor">Selangor</option>
         <option value="terengganu">Terengganu</option>
-        <!-- <option value="perlis">Perlis</option>
-        
-        <option value="putrajaya">Federal Territory of Putrajaya</option>
-        
-        
-        
-        <option value="labuan">Labuan</option> -->
+        <option value="labuan">Labuan</option>
     </select>
     <br></br>
 
@@ -133,7 +128,7 @@
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script>
 
-        $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/last-update.json", {
+        $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
             dataType: 'json',
             timeout: 5000,
             success: function (data, status, xhr) {
@@ -183,18 +178,20 @@
 
         data = {
             'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
-            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
-            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
             'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
+            'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
+            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
             'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
+            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
             'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
             'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
             'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
             'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
             'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
             'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json'
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
+            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
+            'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
         }
 
         function initMap() {
