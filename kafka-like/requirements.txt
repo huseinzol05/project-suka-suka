@@ -1,0 +1,3 @@
+wiredtiger
+ujson
+fastapi
