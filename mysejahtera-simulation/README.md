@@ -29,4 +29,4 @@ case = case - case_
 
 ## Why
 
-1. Simulation if 0 vaccine 
+1. Simulation if 0 vaccine efficiency. Maybe we can add vaccine efficiency after this?
