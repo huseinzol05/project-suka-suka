@@ -137,9 +137,10 @@
     resolution points to assumed 1 cluster.</p>
     <p>case_ = (case * p_r + case * p_d), case = case + case_neighbors * ratio_asymptomatic_symptomatic * p_contact,
         case = case - case_, where p_r = recovered case / case active, p_d = death case / case
-        active, p = positive case / total swap test, ratio_asymptomatic_symptomatic = 0.7, p_contact = 0.1. Neighbors
+        active, p = positive case / total swap test, ratio_asymptomatic_symptomatic = 0.7, p_contact = 0.05. Neighbors
         considered as in 4 resolution points
-        radius, and this simulation assumed no vaccine efficiency. p, p_r, p_d were hard coded based on 22-06-2021 data.
+        radius, <b>and this simulation assumed no vaccine efficiency</b>. p, p_r, p_d were hard coded based on
+        22-06-2021 data.
     </p>
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
