@@ -18,4 +18,6 @@ Use [mysejahtera-density](mysejahtera-density) to generate hotspot polygons.
 
 3. [mysejahtera-simulation](mysejahtera-simulation).
 
+<img alt="logo" width="30%" src="mysejahtera-simulation/selangor.gif">
+
 Use [mysejahtera-density](mysejahtera-density) to generate hotspot polygons and simple simulation.
