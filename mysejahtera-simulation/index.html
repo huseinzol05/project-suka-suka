@@ -162,6 +162,15 @@
         <option value="terengganu">Terengganu</option>
         <option value="labuan">Labuan</option> -->
     </select>
+
+    Choose vaccine efficiency: <select id="efficiency">
+        <option value="0">0</option>
+        <option value="1">25%</option>
+        <option value="2">50%</option>
+        <option value="3">75%</option>
+        <option value="4">90%</option>
+    </select>
+
     <br><br>
     <div class="slidecontainer">
         <input type="range" min="0" max="4" value="0" class="slider" id="myRange">
@@ -233,7 +242,7 @@
             'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
             'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
             'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-simulation/data/selangor.json',
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-simulation/data/selangor-vaccine.json',
             'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
             'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
         }
@@ -275,9 +284,11 @@
             var output = document.getElementById("demo");
             output.innerHTML = slider.value;
 
+            last_value = 0
             slider.oninput = function () {
                 output.innerHTML = this.value;
-                init(this.value)
+                last_value = this.value
+                init(last_value)
             }
             last_state = null
             data_ = null
@@ -290,6 +301,7 @@
                 polygons = [];
 
                 s = $("#states").val()
+                efficiency = parseInt($("#efficiency").val())
                 if (s != last_state) {
                     last_state = s
                     $.ajax(github[s], {
@@ -321,29 +333,29 @@
                     });
                 }
 
-                for (var key in data_[index]) {
-                    for (var i = 0; i < data_[index][key]['polygons'].length; i++) {
+                for (var key in data_[efficiency][index]) {
+                    for (var i = 0; i < data_[efficiency][index][key]['polygons'].length; i++) {
                         var total_lat = 0;
                         var total_lng = 0
-                        for (var k = 0; k < data_[index][key]['polygons'][i].length; k++) {
-                            total_lat += data_[index][key]['polygons'][i][k]['lat'];
-                            total_lng += data_[index][key]['polygons'][i][k]['lng'];
+                        for (var k = 0; k < data_[efficiency][index][key]['polygons'][i].length; k++) {
+                            total_lat += data_[efficiency][index][key]['polygons'][i][k]['lat'];
+                            total_lng += data_[efficiency][index][key]['polygons'][i][k]['lng'];
                         }
-                        var center_lat = total_lat / data_[index][key]['polygons'][i].length;
-                        var center_lng = total_lng / data_[index][key]['polygons'][i].length;
+                        var center_lat = total_lat / data_[efficiency][index][key]['polygons'][i].length;
+                        var center_lng = total_lng / data_[efficiency][index][key]['polygons'][i].length;
 
-                        if (center_lat.toFixed(6) == data_[index][key]['polygons'][i][0]['lat'].toFixed(6) | center_lng.toFixed(6) == data_[index][key]['polygons'][i][0]['lng'].toFixed(6)) continue;
+                        if (center_lat.toFixed(6) == data_[efficiency][index][key]['polygons'][i][0]['lat'].toFixed(6) | center_lng.toFixed(6) == data_[efficiency][index][key]['polygons'][i][0]['lng'].toFixed(6)) continue;
                         const polygon = new google.maps.Polygon({
-                            paths: data_[index][key]['polygons'][i],
-                            strokeColor: data_[index][key]['color'],
+                            paths: data_[efficiency][index][key]['polygons'][i],
+                            strokeColor: data_[efficiency][index][key]['color'],
                             strokeOpacity: 0.8,
                             strokeWeight: 2,
-                            fillColor: data_[index][key]['color'],
+                            fillColor: data_[efficiency][index][key]['color'],
                             fillOpacity: 0.35,
-                            case: data_[index][key]['data'][0][i],
-                            total: data_[index][key]['data'][1][i],
+                            case: data_[efficiency][index][key]['data'][0][i],
+                            total: data_[efficiency][index][key]['data'][1][i],
                             center: new google.maps.LatLng(center_lat, center_lng),
-                            polys: data_[index][key]['polygons'][i],
+                            polys: data_[efficiency][index][key]['polygons'][i],
                             centers: [center_lat, center_lng]
                         });
                         polygon.setMap(map);
@@ -355,10 +367,13 @@
 
             }
 
-            init();
+            init(last_value);
 
             $('#states').on('change', function () {
-                init();
+                init(last_value);
+            });
+            $('#efficiency').on('change', function () {
+                init(last_value);
             });
         }
 
