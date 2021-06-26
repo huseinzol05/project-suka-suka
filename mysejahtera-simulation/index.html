@@ -135,11 +135,12 @@
     <p></p>Blue color covered 0%-33% percentile of active cases, Yellow color covered 33.1%-66% percentile of
     active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
     resolution points to assumed 1 cluster.</p>
-    <p>case_ = (case * p_r + case * p_d), case = case + case_neighbors * ratio_asymptomatic_symptomatic * p_contact,
+    <p>case_ = (case * (p_r / (1 - effiency) + case * (p_d * (1 - effiency)), case = case +
+        case_neighbors * ratio_asymptomatic_symptomatic * p_contact * (1 - vaccine_efficiency),
         case = case - case_, where p_r = recovered case / case active, p_d = death case / case
         active, p = positive case / total swap test, ratio_asymptomatic_symptomatic = 0.7, p_contact = 0.05. Neighbors
         considered as in 4 resolution points
-        radius, <b>and this simulation assumed no vaccine efficiency</b>. p, p_r, p_d were hard coded based on
+        radius. p, p_r, p_d were hard coded based on
         22-06-2021 data.
     </p>
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>

@@ -24,9 +24,9 @@ max_distance = 0.02
 vaccine_effiencies = [0.25, 0.5, 0.75, 0.90]
 
 # calculate resistant
-case_ = (case * p_r + case * p_d)
+case_ = (case * (p_r / (1 - effiency) + case * (p_d * (1 - effiency))
 # calculate infected based on neighbor
-case = case + case_neighbors * ratio_asymptomatic_symptomatic * p_contact
+case = case + case_neighbors * ratio_asymptomatic_symptomatic * p_contact * (1 - effiency)
 case = case - case_
 ```
 
