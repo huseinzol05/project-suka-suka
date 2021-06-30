@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MySejahtera Simulation</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <style>
+        #map {
+            height: 70%;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #description {
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        #infowindow-content .title {
+            font-weight: bold;
+        }
+
+        #infowindow-content {
+            display: none;
+        }
+
+        #map #infowindow-content {
+            display: inline;
+        }
+
+        .pac-card {
+            margin: 10px 10px 0 0;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            font-family: Roboto;
+        }
+
+        #pac-container {
+            padding-bottom: 12px;
+            margin-right: 12px;
+        }
+
+        .pac-controls {
+            display: inline-block;
+            padding: 5px 11px;
+        }
+
+        .pac-controls label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        #pac-input {
+            background-color: #fff;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 400px;
+        }
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        #title {
+            color: #fff;
+            background-color: #4d90fe;
+            font-size: 25px;
+            font-weight: 500;
+            padding: 6px 12px;
+        }
+
+        #target {
+            width: 345px;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+    </style>
+
+    <p>
+        Get the code and data at
+        <a
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-simulation">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-simulation</a>.
+        Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case and
+        total
+        resolution points covered.
+    </p>
+    <p></p>Blue color covered 0%-33% percentile of active cases, Yellow color covered 33.1%-66% percentile of
+    active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
+    resolution points to assumed 1 cluster.</p>
+    <p>case_ = (case * (p_r / (1 - effiency) + case * (p_d * (1 - effiency)), case = case +
+        case_neighbors * ratio_asymptomatic_symptomatic * p_contact * (1 - vaccine_efficiency),
+        case = case - case_, where p_r = recovered case / case active, p_d = death case / case
+        active, p = positive case / total swap test, ratio_asymptomatic_symptomatic = 0.7, p_contact = 0.05. Neighbors
+        considered as in 4 resolution points
+        radius. p, p_r, p_d were hard coded based on
+        22-06-2021 data.
+    </p>
+    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
+
+    <select id="states">
+        <option value="selangor">Selangor</option>
+        <!-- <option value="kl">Federal Territory of Kuala Lumpur</option>
+        <option value="sabah">Sabah</option>
+        <option value="putrajaya">Federal Territory of Putrajaya</option>
+        <option value="kedah">Kedah</option>
+        <option value="sarawak">Sarawak</option>
+        <option value="penang">Penang</option>
+        <option value="johor">Johor</option>
+        <option value="kelantan">Kelantan</option>
+        <option value="melaka">Melaka</option>
+        <option value="negeri-sembilan">Negeri Sembilan</option>
+        <option value="pahang">Pahang</option>
+        <option value="perak">Perak</option>
+        
+        <option value="terengganu">Terengganu</option>
+        <option value="labuan">Labuan</option> -->
+    </select>
+
+    Choose vaccine efficiency: <select id="efficiency">
+        <option value="0">0</option>
+        <option value="1">25%</option>
+        <option value="2">50%</option>
+        <option value="3">75%</option>
+        <option value="4">90%</option>
+    </select>
+
+    <br><br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="4" value="0" class="slider" id="myRange">
+        <p>Next Week: <span id="demo"></span></p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+
+        $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+            dataType: 'json',
+            timeout: 5000,
+            success: function (data, status, xhr) {
+                $("#last-update").text(data['last-update'])
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+                $("#last-update").text('2021-06-15')
+            }
+        });
+
+        zoom = {
+            'kl': 11.5,
+            'perlis': 11,
+            'sabah': 8,
+            'putrajaya': 13,
+            'kedah': 9,
+            'sarawak': 7,
+            'penang': 10.5,
+            'johor': 9,
+            'kelantan': 9,
+            'melaka': 10.5,
+            'negeri-sembilan': 9.5,
+            'pahang': 9,
+            'perak': 9.5,
+            'selangor': 10,
+            'terengganu': 8.5,
+            'labuan': 12
+        }
+        center = {
+            'kl': [3.1392120930232563, 101.69246448837208],
+            'perlis': [6.524751999999999, 100.22751252631578],
+            'sabah': [5.27816915, 116.97592164999999],
+            'putrajaya': [2.933356648648649, 101.68667875675675],
+            'kedah': [5.861430566265059, 100.67029332530122],
+            'sarawak': [2.738490452054794, 113.39022178082192],
+            'penang': [5.326611172413791, 100.41983951724136],
+            'johor': [1.891816231746032, 103.49781690793652],
+            'kelantan': [5.199608448780487, 102.06351577073173],
+            'melaka': [2.290535240310077, 102.30847203100777],
+            'negeri-sembilan': [2.618115251655629, 102.08174941721853],
+            'pahang': [4.071478952606635, 102.32340633175355],
+            'perak': [4.733874, 101.14707000581394],
+            'selangor': [3.355404307017544, 101.50504664035088],
+            'terengganu': [4.825278525714285, 102.89730278285715],
+            'labuan': [5.314517, 115.221615]
+        }
+
+        github = {
+            'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
+            'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
+            'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
+            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
+            'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
+            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
+            'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
+            'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
+            'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
+            'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
+            'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
+            'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-simulation/data/selangor-vaccine.json',
+            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
+            'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
+        }
+
+        function initMap() {
+
+            let map;
+            polygons = [];
+            map = new google.maps.Map(document.getElementById("map"), {});
+            const input = document.getElementById("pac-input");
+            const searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+
+                if (places.length == 0) {
+                    return;
+                }
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach((place) => {
+                    if (!place.geometry || !place.geometry.location) {
+                        alert("Returned place contains no geometry");
+                        return;
+                    }
+
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+                map.fitBounds(bounds);
+            });
+
+            var slider = document.getElementById("myRange");
+            var output = document.getElementById("demo");
+            output.innerHTML = slider.value;
+
+            last_value = 0
+            slider.oninput = function () {
+                output.innerHTML = this.value;
+                last_value = this.value
+                init(last_value)
+            }
+            last_state = null
+            data_ = null
+
+            function init(index = 0) {
+
+                polygons.forEach((polygon) => {
+                    polygon.setMap(null);
+                });
+                polygons = [];
+
+                s = $("#states").val()
+                efficiency = parseInt($("#efficiency").val())
+                if (s != last_state) {
+                    last_state = s
+                    $.ajax(github[s], {
+                        async: false,
+                        dataType: 'json',
+                        timeout: 5000,
+                        success: function (data, status, xhr) {
+                            console.log(data);
+                            data_ = data;
+                        },
+                        error: function (jqXhr, textStatus, errorMessage) {
+                            alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-simulation, please try again');
+                        }
+                    });
+
+                    map.setZoom(zoom[s]);
+                    map.setCenter(new google.maps.LatLng(center[s][0], center[s][1]))
+                }
+
+                var infoWin = new google.maps.InfoWindow();
+
+                function makeClickable(polygon) {
+                    google.maps.event.addListener(polygon, "click", function () {
+                        case_string = 'Average case: ' + polygon.case.toString() + '<br>'
+                        resolution_string = 'Total resolution points: ' + polygon.total.toString()
+                        infoWin.setPosition(polygon.center);
+                        infoWin.setContent(case_string + resolution_string);
+                        infoWin.open(map);
+                    });
+                }
+
+                for (var key in data_[efficiency][index]) {
+                    for (var i = 0; i < data_[efficiency][index][key]['polygons'].length; i++) {
+                        var total_lat = 0;
+                        var total_lng = 0
+                        for (var k = 0; k < data_[efficiency][index][key]['polygons'][i].length; k++) {
+                            total_lat += data_[efficiency][index][key]['polygons'][i][k]['lat'];
+                            total_lng += data_[efficiency][index][key]['polygons'][i][k]['lng'];
+                        }
+                        var center_lat = total_lat / data_[efficiency][index][key]['polygons'][i].length;
+                        var center_lng = total_lng / data_[efficiency][index][key]['polygons'][i].length;
+
+                        if (center_lat.toFixed(6) == data_[efficiency][index][key]['polygons'][i][0]['lat'].toFixed(6) | center_lng.toFixed(6) == data_[efficiency][index][key]['polygons'][i][0]['lng'].toFixed(6)) continue;
+                        const polygon = new google.maps.Polygon({
+                            paths: data_[efficiency][index][key]['polygons'][i],
+                            strokeColor: data_[efficiency][index][key]['color'],
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: data_[efficiency][index][key]['color'],
+                            fillOpacity: 0.35,
+                            case: data_[efficiency][index][key]['data'][0][i],
+                            total: data_[efficiency][index][key]['data'][1][i],
+                            center: new google.maps.LatLng(center_lat, center_lng),
+                            polys: data_[efficiency][index][key]['polygons'][i],
+                            centers: [center_lat, center_lng]
+                        });
+                        polygon.setMap(map);
+                        makeClickable(polygon);
+                        polygons.push(polygon);
+                    }
+
+                }
+
+            }
+
+            init(last_value);
+
+            $('#states').on('change', function () {
+                init(last_value);
+            });
+            $('#efficiency').on('change', function () {
+                init(last_value);
+            });
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <input id="pac-input" class="controls" type="text" placeholder="Search Address" />
+    <div id="map"></div>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=places&v=weekly"
+        async></script>
+</body>
+
+</html>
