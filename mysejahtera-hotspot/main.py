@@ -30,16 +30,18 @@ STATES = {
     'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
     'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sabah-points.json-points-cases.json',
     'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sarawak-points.json-points-cases.json',
-    'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/selangor-points.json-points-cases.json',
+    'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Selangor-points.json-points-cases.json',
     'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Terengganu-points.json-points-cases.json',
 }
+
 COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
          4: '#0000FF', 5: '#0000FF', 6: '#0000FF', 7: '#FFFF00',
          8: '#FFFF00', 9: '#FFFF00', 10: '#FFFF00', 11: '#FFFF00',
          12: '#FFFF00', 13: '#FF0000', 14: '#FF0000', 15: '#FF0000',
          16: '#FF0000', 17: '#FF0000', 18: '#FF0000', 19: '#FF0000'}
 STEP = 0.05
-
+DEFAULT_DISTANCE = 0.0045
+DISTANCES = {'Sabah': 0.0075, 'Sarawak': 0.0085}
 
 def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
     try:
@@ -104,31 +106,35 @@ for STATE, LINK in STATES.items():
 
         if str(boundaries[i]) in already_processed:
             continue
+            
+        try:
 
-        dbscan = DBSCAN(eps=0.005, min_samples=3)
-        filtered_df = df[(df[2] >= boundaries[i][0]) & (df[2] < boundaries[i][1])]
-        filtered_df_index = filtered_df.index
-        clustering = dbscan.fit(filtered_df[[0, 1]].values)
+            dbscan = DBSCAN(eps=DISTANCES.get(STATE, DEFAULT_DISTANCE), min_samples=3)
+            filtered_df = df[(df[2] >= boundaries[i][0]) & (df[2] < boundaries[i][1])]
+            filtered_df_index = filtered_df.index
+            clustering = dbscan.fit(filtered_df[[0, 1]].values)
 
-        labels = np.full(shape=df.shape[0], fill_value=-1)
-        for no in range(len(clustering.labels_)):
-            labels[filtered_df_index[no]] = clustering.labels_[no]
+            labels = np.full(shape=df.shape[0], fill_value=-1)
+            for no in range(len(clustering.labels_)):
+                labels[filtered_df_index[no]] = clustering.labels_[no]
 
-        print(np.unique(labels))
+            print(np.unique(labels))
 
-        polys, ys, totals = get_cluster_boundary(pd.Series(labels), db, db[2], crs=db.crs)
-        polys = polys.to_crs('crs')
+            polys, ys, totals = get_cluster_boundary(pd.Series(labels), db, db[2], crs=db.crs)
+            polys = polys.to_crs('crs')
 
-        polygons = []
-        for k in range(len(polys)):
-            polygons_ = []
-            x, y = polys.iloc[k].exterior.coords.xy
-            for x_, y_ in zip(x, y):
-                polygons_.append({'lat': y_, 'lng': x_})
-            polygons.append(polygons_)
+            polygons = []
+            for k in range(len(polys)):
+                polygons_ = []
+                x, y = polys.iloc[k].exterior.coords.xy
+                for x_, y_ in zip(x, y):
+                    polygons_.append({'lat': y_, 'lng': x_})
+                polygons.append(polygons_)
 
-        results[i] = {'polygons': polygons, 'data': [ys, totals], 'color': COLOR[i]}
-        already_processed.add(str(boundaries))
+            results[i] = {'polygons': polygons, 'data': [ys, totals], 'color': COLOR[i]}
+            already_processed.add(str(boundaries))
+        except Exception as e:
+            print(e)
 
     print(STATE, results.keys())
     with open(f'data/{STATE}.json', 'w') as fopen:
