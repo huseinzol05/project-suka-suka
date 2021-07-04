@@ -3,15 +3,21 @@
 import json
 import pandas as pd
 import geopandas
+from shapely.geometry.multilinestring import MultiLineString
+from shapely.geometry.collection import GeometryCollection
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.ops import cascaded_union
+from shapely.geometry.polygon import Polygon
 from shapely.geometry import Point
 from geopandas import GeoDataFrame
 from libpysal.cg.alpha_shapes import alpha_shape_auto
 from sklearn.cluster import DBSCAN
+from datetime import datetime, date
 import urllib.parse
 import libpysal as lps
 import numpy as np
 import os
-from datetime import datetime, date
+import copy
 
 today = str(date.today())
 today
@@ -39,9 +45,11 @@ COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
          8: '#FFFF00', 9: '#FFFF00', 10: '#FFFF00', 11: '#FFFF00',
          12: '#FFFF00', 13: '#FF0000', 14: '#FF0000', 15: '#FF0000',
          16: '#FF0000', 17: '#FF0000', 18: '#FF0000', 19: '#FF0000'}
+COLORS = ['#0000FF', '#FFFF00', '#FF0000']
 STEP = 0.05
 DEFAULT_DISTANCE = 0.0045
-DISTANCES = {'Sabah': 0.0075, 'Sarawak': 0.0085}
+DISTANCES = {'sabah': 0.0075, 'sarawak': 0.0085}
+
 
 def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
     try:
@@ -74,6 +82,12 @@ def _asa(pts_s):
     return alpha_shape_auto(pts_s[0], step=pts_s[1])
 
 
+def check_boundaries(v):
+    for i in range(len(boundaries)):
+        if boundaries[i][0] <= v < boundaries[i][1]:
+            return i
+
+
 for STATE, LINK in STATES.items():
     print(STATE, LINK)
     file = urllib.parse.unquote(LINK.split('/')[-1])
@@ -96,8 +110,8 @@ for STATE, LINK in STATES.items():
     db["X"] = db.geometry.x
     db["Y"] = db.geometry.y
 
-    results = {}
     already_processed = set()
+    polygons = []
     for i in range(len(boundaries)):
         print(i, boundaries[i])
 
@@ -106,9 +120,8 @@ for STATE, LINK in STATES.items():
 
         if str(boundaries[i]) in already_processed:
             continue
-            
-        try:
 
+        try:
             dbscan = DBSCAN(eps=DISTANCES.get(STATE, DEFAULT_DISTANCE), min_samples=3)
             filtered_df = df[(df[2] >= boundaries[i][0]) & (df[2] < boundaries[i][1])]
             filtered_df_index = filtered_df.index
@@ -118,27 +131,70 @@ for STATE, LINK in STATES.items():
             for no in range(len(clustering.labels_)):
                 labels[filtered_df_index[no]] = clustering.labels_[no]
 
-            print(np.unique(labels))
-
             polys, ys, totals = get_cluster_boundary(pd.Series(labels), db, db[2], crs=db.crs)
             polys = polys.to_crs('crs')
 
-            polygons = []
             for k in range(len(polys)):
+                if polys.iloc[k].area <= 1e-12:
+                    continue
                 polygons_ = []
                 x, y = polys.iloc[k].exterior.coords.xy
                 for x_, y_ in zip(x, y):
                     polygons_.append({'lat': y_, 'lng': x_})
-                polygons.append(polygons_)
+                polygons.append({'polygon': polys.iloc[k].convex_hull, 'y': [ys[k]],
+                                'total': totals[k], 'color': COLOR[i]})
 
-            results[i] = {'polygons': polygons, 'data': [ys, totals], 'color': COLOR[i]}
             already_processed.add(str(boundaries))
         except Exception as e:
             print(e)
 
-    print(STATE, results.keys())
+    polygons_ = copy.deepcopy(polygons)
+
+    r = []
+    processed = set()
+    for i in reversed(range(len(polygons_))):
+        if i in processed:
+            continue
+
+        for k in reversed(range(len(polygons_))):
+            if k in processed:
+                continue
+
+            if i == k:
+                continue
+            if k > i:
+                continue
+
+            if not polygons_[i]['polygon'].intersects(polygons_[k]['polygon']):
+                continue
+
+            l = polygons_[i]['polygon'].union(polygons_[k]['polygon'])
+            if not isinstance(l, MultiPolygon):
+                if isinstance(l, GeometryCollection):
+                    l = [p for p in l if isinstance(p, Polygon)]
+                    l = cascaded_union(l)
+                polygons_[i]['polygon'] = l.convex_hull
+                polygons_[i]['y'].extend(polygons_[k]['y'])
+                polygons_[i]['total'] += polygons_[k]['total']
+                processed.add(k)
+
+        polygons_[i]['y'] = np.mean(polygons_[i]['y'])
+        new_color = COLOR[check_boundaries(polygons_[i]['y'])]
+        polygons_[i]['color'] = new_color
+        if polygons_[i]['polygon'].area > 1e-12:
+            r.append(polygons_[i])
+
+    for i in range(len(r)):
+        polygons_ = []
+        area = r[i]['polygon'].area / 1e6
+        x, y = r[i]['polygon'].exterior.coords.xy
+        for x_, y_ in zip(x, y):
+            polygons_.append({'lat': y_, 'lng': x_})
+        r[i]['polygon'] = polygons_
+        r[i]['area'] = area
+
     with open(f'data/{STATE}.json', 'w') as fopen:
-        json.dump(results, fopen)
+        json.dump(r, fopen)
 
     os.remove(file)
 
