@@ -95,13 +95,13 @@
         <a
             href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>
     </p>
-    <p>Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case and total
-        resolution points covered.</p>
+    <p>Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case, total
+        resolution points covered and area covered in km^2.</p>
     <p>Blue color covered 0%-33% percentile of active cases, Yellow color covered 33.1%-66% percentile of
         active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
-        resolution points to assumed 1 cluster.</p>
-    <p>Give Husein a break, he knows this website is ugly. Please open this website on desktop / laptop browser if you
-        do not see any data.</p>
+        resolution points to assumed 1 cluster. Distance between one point to another point approximately ~0.33km,
+        except for Sabah
+        ~0.55km dan Sarawak ~0.66km.</p>
 
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
@@ -189,7 +189,7 @@
             'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
             'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
             'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor-v2.json',
             'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
             'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
         }
@@ -244,9 +244,10 @@
                     google.maps.event.addListener(polygon, "click", function () {
                         console.log(polygon);
                         case_string = 'Average case: ' + polygon.case.toString() + '<br>'
-                        resolution_string = 'Total resolution points: ' + polygon.total.toString()
+                        resolution_string = 'Total resolution points: ' + polygon.total.toString() + '<br>'
+                        area_string = 'Area hotspot: ' + polygon.area.toFixed(6) + ' km^2 <br>'
                         infoWin.setPosition(polygon.center);
-                        infoWin.setContent(case_string + resolution_string);
+                        infoWin.setContent(case_string + resolution_string + area_string);
                         infoWin.open(map);
                     });
                 }
@@ -256,37 +257,33 @@
                     timeout: 5000,
                     success: function (data, status, xhr) {
 
-
-                        for (var key in data) {
-                            for (var i = 0; i < data[key]['polygons'].length; i++) {
-                                var total_lat = 0;
-                                var total_lng = 0
-                                for (var k = 0; k < data[key]['polygons'][i].length; k++) {
-                                    total_lat += data[key]['polygons'][i][k]['lat'];
-                                    total_lng += data[key]['polygons'][i][k]['lng'];
-                                }
-                                var center_lat = total_lat / data[key]['polygons'][i].length;
-                                var center_lng = total_lng / data[key]['polygons'][i].length;
-
-                                if (center_lat.toFixed(6) == data[key]['polygons'][i][0]['lat'].toFixed(6) | center_lng.toFixed(6) == data[key]['polygons'][i][0]['lng'].toFixed(6)) continue;
-                                const polygon = new google.maps.Polygon({
-                                    paths: data[key]['polygons'][i],
-                                    strokeColor: data[key]['color'],
-                                    strokeOpacity: 0.8,
-                                    strokeWeight: 2,
-                                    fillColor: data[key]['color'],
-                                    fillOpacity: 0.35,
-                                    case: data[key]['data'][0][i],
-                                    total: data[key]['data'][1][i],
-                                    center: new google.maps.LatLng(center_lat, center_lng),
-                                    polys: data[key]['polygons'][i],
-                                    centers: [center_lat, center_lng]
-                                });
-                                polygon.setMap(map);
-                                makeClickable(polygon);
-                                polygons.push(polygon);
+                        for (var i = 0; i < data.length; i++) {
+                            var total_lat = 0;
+                            var total_lng = 0
+                            for (var k = 0; k < data[i]['polygon'].length; k++) {
+                                total_lat += data[i]['polygon'][k]['lat'];
+                                total_lng += data[i]['polygon'][k]['lng'];
                             }
-
+                            var center_lat = total_lat / data[i]['polygon'].length;
+                            var center_lng = total_lng / data[i]['polygon'].length;
+                            const polygon = new google.maps.Polygon({
+                                paths: data[i]['polygon'],
+                                strokeColor: data[i]['color'],
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: data[i]['color'],
+                                fillOpacity: 0.35,
+                                case: data[i]['y'],
+                                total: data[i]['total'],
+                                center: new google.maps.LatLng(center_lat, center_lng),
+                                polys: data[i]['polygon'],
+                                centers: [center_lat, center_lng],
+                                index: i,
+                                area: (data[i]['area'] * 1e6 * 6372.8),
+                            });
+                            polygon.setMap(map);
+                            makeClickable(polygon);
+                            polygons.push(polygon);
                         }
 
                     },
