@@ -48,7 +48,7 @@ COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
 COLORS = ['#0000FF', '#FFFF00', '#FF0000']
 STEP = 0.05
 DEFAULT_DISTANCE = 0.0045
-DISTANCES = {'sabah': 0.0075, 'sarawak': 0.0085}
+DISTANCES = {'Sabah': 0.0075, 'Sarawak': 0.0085}
 
 
 def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
@@ -184,17 +184,48 @@ for STATE, LINK in STATES.items():
         if polygons_[i]['polygon'].area > 1e-12:
             r.append(polygons_[i])
 
-    for i in range(len(r)):
+    post = []
+    for i in reversed(range(len(r))):
+
+        inside = False
+        a = r[i]['polygon'].area
+
+        for k in range(len(r)):
+            if k in processed:
+                continue
+
+            if i == k:
+                continue
+
+            if i < k:
+                continue
+
+            if not r[i]['polygon'].intersects(r[k]['polygon']):
+                continue
+
+            l = r[i]['polygon'].intersection(r[k]['polygon'])
+            if not isinstance(l, MultiPolygon):
+                if isinstance(l, GeometryCollection):
+                    l = [p for p in l if isinstance(p, Polygon)]
+                    l = cascaded_union(l)
+                if l.area / a >= 0.8:
+                    inside = True
+                    break
+
+        if not inside:
+            post.append(r[i])
+
+    for i in range(len(post)):
         polygons_ = []
-        area = r[i]['polygon'].area / 1e6
-        x, y = r[i]['polygon'].exterior.coords.xy
+        x, y = post[i]['polygon'].exterior.coords.xy
+        area = post[i]['polygon'].area
         for x_, y_ in zip(x, y):
             polygons_.append({'lat': y_, 'lng': x_})
-        r[i]['polygon'] = polygons_
-        r[i]['area'] = area
+        post[i]['polygon'] = polygons_
+        post[i]['area'] = area
 
     with open(f'data/{STATE}.json', 'w') as fopen:
-        json.dump(r, fopen)
+        json.dump(post, fopen)
 
     os.remove(file)
 
