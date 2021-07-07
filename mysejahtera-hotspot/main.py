@@ -48,7 +48,7 @@ COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
 COLORS = ['#0000FF', '#FFFF00', '#FF0000']
 STEP = 0.05
 DEFAULT_DISTANCE = 0.0045
-DISTANCES = {'Sabah': 0.0075, 'Sarawak': 0.0085}
+DISTANCES = {'sabah': 0.0075, 'sarawak': 0.0085}
 
 
 def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
