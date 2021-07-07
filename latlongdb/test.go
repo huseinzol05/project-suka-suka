@@ -8,16 +8,34 @@ import (
 
 func main() {
 	
-	db, _ := leveldb.OpenFile("db/b", nil)
+	db, _ := leveldb.OpenFile("db/test1", nil)
 	buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, 12)
-	_ = db.Put([]byte("foo"), buf, nil)
-	data, err := db.Get([]byte("foo1"), nil)
-	var num uint64 = 0
-	if err == nil {
-		num = binary.BigEndian.Uint64(data)
-	}
+	binary.BigEndian.PutUint64(buf, 0)
+	// _ = db.Put([]byte("foo"), buf, nil)
+	data, _ := db.Get([]byte("count"), nil)
+	num := binary.BigEndian.Uint64(data)
 	fmt.Printf("%d", num)
-	fmt.Printf("%s %s", []byte("foo"), buf)
+
+	buf = make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, 0)
+	data, _ = db.Get([]byte(buf), nil)
+	fmt.Printf("%s", data)
+	// fmt.Printf("%s", data)
+	// var num uint64 = 0
+	// if err == nil {
+	// 	num = binary.BigEndian.Uint64(data)
+	// }
+	// fmt.Printf("%d", num)
+	// fmt.Printf("%s %s", []byte("foo"), buf)
 
 }
+
+// import (
+// 	"fmt"
+// )
+
+// func main (){
+// 	a := 2
+// 	a = 4
+// 	fmt.Printf("%d", a)
+// }
