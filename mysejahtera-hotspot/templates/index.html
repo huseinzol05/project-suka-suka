@@ -279,6 +279,34 @@
                             var center_lat = total_lat / data[i]['polygon'].length;
                             var center_lng = total_lng / data[i]['polygon'].length;
                             var area = data[i]['area'] * 6372.8;
+                            
+                            /*  This is a hack; the colours might be recoded in
+                             *  the source data instead. (2021-07-08)
+                             *
+                             *  The motivation to change the colours is I would 
+                             *  mod the colour scheme from null/blue/yellow/red 
+                             *  to green/yellow/orange/red ... because the 
+                             *  null/blue aspects may be confused in terms of safety. 
+                             */
+                            
+                            switch ( data[i]['color'].toLowerCase() ) {
+                                
+                                // blue to yellow
+                                case '#0000ff' :
+                                    data[i]['color'] = '#ffff00'
+                                    break
+                                
+                                // yellow to orange
+                                case '#ffff00' :
+                                    data[i]['color'] = '#ffa500'
+                                    break
+                                
+                            }
+
+
+                            /* 
+                             *  End of hack. */
+
                             const polygon = new google.maps.Polygon({
                                 paths: data[i]['polygon'],
                                 strokeColor: data[i]['color'],
