@@ -93,10 +93,9 @@
     <p>
         Get the code and data at
         <a
-            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
+        Click on any polygons to get average case, total resolution points covered and area covered in km^2.
     </p>
-    <p>Google Map will take a few seconds to load the data, wait ya. Click on any polygons to get average case, total
-        resolution points covered and area covered in km^2.</p>
     <p>Blue color covered 0%-33% percentile of active cases, Yellow color covered 33.1%-66% percentile of
         active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
         resolution points to assumed 1 cluster. Distance between one point to another point approximately ~0.33km,
@@ -122,6 +121,12 @@
         <option value="terengganu">Terengganu</option>
         <option value="labuan">Labuan</option>
     </select>
+    <button id="1-top-button" class="top-button">Top 1 active cases</button>
+    <button id="2-top-button" class="top-button">Top 2 active cases</button>
+    <button id="3-top-button" class="top-button">Top 3 active cases</button>
+    <button id="1-area-button" class="area-button">Top 1 area km^2</button>
+    <button id="2-area-button" class="area-button">Top 2 area km^2</button>
+    <button id="3-area-button" class="area-button">Top 3 area km^2</button>
     <br></br>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -189,16 +194,21 @@
             'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
             'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
             'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor-v2.json',
+            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
             'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
             'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
         }
+
+        function sortFloat(a, b) { return a[0] - b[0]; };
+        let argsort = a => a.map((v, i) => [v, i]).sort(sortFloat).map(i => i[1]);
 
         function initMap() {
 
             let map;
             polygons = [];
-            map = new google.maps.Map(document.getElementById("map"), {});
+            cases = [];
+            areas = [];
+            map = new google.maps.Map(document.getElementById("map"), { mapTypeId: google.maps.MapTypeId.TERRAIN });
             const input = document.getElementById("pac-input");
             const searchBox = new google.maps.places.SearchBox(input);
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
@@ -233,6 +243,8 @@
                     polygon.setMap(null);
                 });
                 polygons = [];
+                cases = [];
+                areas = [];
 
                 s = $("#states").val()
                 map.setZoom(zoom[s]);
@@ -266,6 +278,7 @@
                             }
                             var center_lat = total_lat / data[i]['polygon'].length;
                             var center_lng = total_lng / data[i]['polygon'].length;
+                            var area = data[i]['area'] * 6372.8;
                             const polygon = new google.maps.Polygon({
                                 paths: data[i]['polygon'],
                                 strokeColor: data[i]['color'],
@@ -279,12 +292,16 @@
                                 polys: data[i]['polygon'],
                                 centers: [center_lat, center_lng],
                                 index: i,
-                                area: (data[i]['area'] * 1e6 * 6372.8),
+                                area: area,
                             });
                             polygon.setMap(map);
                             makeClickable(polygon);
                             polygons.push(polygon);
+                            cases.push(data[i]['y']);
+                            areas.push(area);
                         }
+                        cases = argsort(cases);
+                        areas = argsort(areas);
 
                     },
                     error: function (jqXhr, textStatus, errorMessage) {
@@ -297,6 +314,25 @@
 
             $('#states').on('change', function () {
                 init();
+            });
+
+            $('.top-button').on('click', function () {
+                console.log($(this));
+                index = parseInt($(this).attr('id').split('-')[0])
+                index = cases[cases.length - index]
+                console.log(index)
+                polygon = polygons[index]
+                map.setZoom(14);
+                map.setCenter(new google.maps.LatLng(polygon.centers[0], polygon.centers[1]))
+            });
+            $('.area-button').on('click', function () {
+                console.log($(this));
+                index = parseInt($(this).attr('id').split('-')[0])
+                index = areas[areas.length - index]
+                console.log(index)
+                polygon = polygons[index]
+                map.setZoom(14);
+                map.setCenter(new google.maps.LatLng(polygon.centers[0], polygon.centers[1]))
             });
         }
 
