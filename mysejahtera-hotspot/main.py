@@ -1,5 +1,3 @@
-
-
 import json
 import pandas as pd
 import geopandas
@@ -231,3 +229,4 @@ for STATE, LINK in STATES.items():
 
 with open('last-update.json', 'w') as fopen:
     json.dump({'last-update': today}, fopen)
+
