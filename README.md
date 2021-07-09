@@ -21,3 +21,7 @@ Use [mysejahtera-density](mysejahtera-density) to generate hotspot polygons.
 <img alt="logo" width="30%" src="mysejahtera-simulation/selangor.gif">
 
 Use [mysejahtera-density](mysejahtera-density) to generate hotspot polygons and do hotspot simulation for next 4 weeks if 0%, 25%, 50%, 75% and 90% vaccine efficiencies.
+
+4. [LatLongDB](latlongdb).
+
+Haversine Ball Tree index DB to query based on distance (KM) from scratch using Golang.
