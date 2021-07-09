@@ -1,6 +1,6 @@
 # LatLongDB
 
-Haversine Ball Tree index DB to query and aggregate based on distance (KM).
+Haversine Ball Tree index DB to query based on distance (KM).
 
 ## how-to
 

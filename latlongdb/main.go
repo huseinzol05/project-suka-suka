@@ -411,17 +411,11 @@ func Query(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
     defer db_index.Close()
 }
 
-func Aggregate(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
-    index := ps.ByName("index")
-    fmt.Fprintf(w, "aggregate, %s", index)
-}
-
 func main() {
     router := httprouter.New()
     router.GET("/", Root)
     router.POST("/:index/insert", Insert)
     router.GET("/:index/index", Index)
     router.GET("/:index/query", Query)
-    router.GET("/:index/aggregate", Aggregate)
     log.Fatal(http.ListenAndServe(":8080", router))
 }
