@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 	"encoding/json"
 	"github.com/mkmik/argsort"
     "github.com/syndtr/goleveldb/leveldb"
@@ -19,11 +20,10 @@ func Rdist_to_dist(rdist float64) float64 {
 	return 2 * math.Asin(math.Sqrt(rdist))
 }
 
-func NodeBallTree(db *leveldb.DB, db_index *leveldb.DB, keys *[]string, label string){
+func NodeBallTree(db *leveldb.DB, db_index *leveldb.DB, keys *[]string, label string, g *sync.WaitGroup){
 	var result map[string]interface{}
 	lat := 0.0
 	long := 0.0
-	count := 0
 	min_lat := 9999.99
 	min_long := 9999.99
 	max_lat := -9999.99
@@ -49,14 +49,13 @@ func NodeBallTree(db *leveldb.DB, db_index *leveldb.DB, keys *[]string, label st
 		if long_ > max_long {
 			max_long = long_
 		}
-		count += 1
 		lats = append(lats, lat_)
 		longs = append(longs, long_)
 	}
 	order_lat := argsort.Sort(sort.Float64Slice(lats))
 	order_long := argsort.Sort(sort.Float64Slice(longs))
-	lat /= float64(count)
-	long /= float64(count)
+	lat /= float64(len(*keys))
+	long /= float64(len(*keys))
 	radius := -9999.99
 
 	iter := db.NewIterator(nil, nil)
@@ -111,12 +110,16 @@ func NodeBallTree(db *leveldb.DB, db_index *leveldb.DB, keys *[]string, label st
 		median := len(sorted_keys) / 2
 		left_sorted_keys := sorted_keys[:median]
 		right_sorted_keys := sorted_keys[median:]
-		NodeBallTree(db, db_index, &left_sorted_keys, left_key)
-		NodeBallTree(db, db_index, &right_sorted_keys, right_key)
+		g.Add(1)
+		go NodeBallTree(db, db_index, &left_sorted_keys, left_key, g)
+		g.Add(1)
+		go NodeBallTree(db, db_index, &right_sorted_keys, right_key, g)
 	}
+
+	defer g.Done()
 }
 
-func BallTree(db *leveldb.DB, db_index *leveldb.DB){
+func BallTree(db *leveldb.DB, db_index *leveldb.DB, g *sync.WaitGroup){
 	var result map[string]interface{}
 	iter := db.NewIterator(nil, nil)
 	lat := 0.0
@@ -209,14 +212,21 @@ func BallTree(db *leveldb.DB, db_index *leveldb.DB){
 	median := len(sorted_keys) / 2
 	left_sorted_keys := sorted_keys[:median]
 	right_sorted_keys := sorted_keys[median:]
-	NodeBallTree(db, db_index, &left_sorted_keys, left_key)
-	NodeBallTree(db, db_index, &right_sorted_keys, right_key)
+	g.Add(1)
+	go NodeBallTree(db, db_index, &left_sorted_keys, left_key, g)
+	g.Add(1)
+	go NodeBallTree(db, db_index, &right_sorted_keys, right_key, g)
+
+	defer g.Done()
 }
 
 
 func main() {
 	index := "test1"
+	g := &sync.WaitGroup{}
+	g.Add(1)
 	db, _ := leveldb.OpenFile("db/" + index, nil)
 	db_index, _ := leveldb.OpenFile("db-index/" + index, nil)
-	BallTree(db, db_index)
+	BallTree(db, db_index, g)
+	g.Wait()
 }

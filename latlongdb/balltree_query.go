@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 	"encoding/json"
 	"github.com/mkmik/argsort"
     "github.com/syndtr/goleveldb/leveldb"
@@ -25,7 +26,7 @@ func Radian(degrees float64) float64 {
 	return degrees * (math.Pi / 180.0)
 }
 	
-func Query(db_index *leveldb.DB, label string, lat float64, long float64, distance float64) []map[string]interface{} {
+func Query(db_index *leveldb.DB, label string, lat float64, long float64, distance float64, g *sync.WaitGroup) []map[string]interface{} {
 	var results []map[string]interface{}
 	var result map[string]interface{}
 	var data map[string]interface{}
@@ -35,8 +36,10 @@ func Query(db_index *leveldb.DB, label string, lat float64, long float64, distan
 	if data_ == nil {
 		distance_ := Dist(result["lat"].(float64), result["long"].(float64), lat, long)
 		if distance_ < distance + result["radius"].(float64){
-			results_left := Query(db_index, label + "-left", lat, long, distance)
-			results_right := Query(db_index, label + "-right", lat, long, distance)
+			g.Add(1)
+			results_left := Query(db_index, label + "-left", lat, long, distance, g)
+			g.Add(1)
+			results_right := Query(db_index, label + "-right", lat, long, distance, g)
 			results = append(results, results_left...)
 			results = append(results, results_right...)
 		}
@@ -48,16 +51,20 @@ func Query(db_index *leveldb.DB, label string, lat float64, long float64, distan
 			results = append(results, data)
 		}
 	}
+	defer g.Done()
 	return results
 }
 
 func main() {
+	g := &sync.WaitGroup{}
+	g.Add(1)
 	index := "test1"
 	radius_km := 10.0
 	lat := Radian(2.950815010581982)
 	long := Radian(101.62843052319319)
 	db_index, _ := leveldb.OpenFile("db-index/" + index, nil)
-	results := Query(db_index, "root", lat, long, radius_km / Earth_Radius_KM)
+	results := Query(db_index, "root", lat, long, radius_km / Earth_Radius_KM, g)
+	g.Wait()
 	distances := make([]float64, len(results))
 	for i := 0; i < len(results); i++ {
 		distances[i] = results[i]["distance"].(float64)
