@@ -8,7 +8,7 @@ import (
     "io/ioutil"
     "net/http"
     "encoding/json"
-    "encoding/binary"
+    "github.com/google/uuid"
     "github.com/julienschmidt/httprouter"
     "github.com/syndtr/goleveldb/leveldb"
 )
@@ -16,6 +16,14 @@ import (
 type DB struct {
     db *leveldb.DB
     mu sync.Mutex
+}
+
+type BallTree struct {
+    Left *BallTree
+    Right *BallTree
+    Loc [2]float64
+    Radius float64
+    Data [1]map[string]interface{}
 }
 
 func Root(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -35,40 +43,34 @@ func Insert(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     db, _ := leveldb.OpenFile("db/" + index, nil)
     dbm := DB{db: db}
     dbm.mu.Lock()
-    var num uint64 = 0
-    data, err := dbm.db.Get([]byte("count"), nil)
-    if err == nil {
-		num = binary.BigEndian.Uint64(data)
-    }
-    var success_row []interface{}
-    var fail_row []interface{}
-    var fail_reasons []interface{}
+    var success_row []int
+    var fail_row []int
+    var fail_reasons []string
     for no, result := range results {
         s := "success"
+        id := uuid.New().String()
         success := true
         _, ok_lat := result["lat"]
         _, ok_long := result["long"]
+        _, ok_id := result["id"]
         if !ok_long || !ok_lat {
             s = "key `lat` or `long` not exist"
             success = false
         }
+        if ok_id {
+            id = fmt.Sprint(result["id"])
+        }
         if success {
             success_row = append(success_row, no)
             b, _ := json.Marshal(result)
-            buf := make([]byte, 8)
-            binary.BigEndian.PutUint64(buf, num)
-            dbm.db.Put([]byte(buf), b, nil)
-            num += 1
+            dbm.db.Put([]byte(id), b, nil)
         } else {
             fail_row = append(fail_row, no)
             fail_reasons = append(fail_reasons, s)
         }
         
     }
-    buf := make([]byte, 8)
-    binary.BigEndian.PutUint64(buf, num)
-    dbm.db.Put([]byte("count"), buf, nil)
-    output := map[string][]interface{}{
+    output := map[string]interface{}{
         "success_row": success_row,
         "fail_row": fail_row,
         "fail_reasons": fail_reasons,
@@ -98,11 +100,17 @@ func Query(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
     fmt.Fprintf(w, "aggregate, %s", index)
 }
 
+func Aggregate(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+    index := ps.ByName("index")
+    fmt.Fprintf(w, "aggregate, %s", index)
+}
+
 func main() {
     router := httprouter.New()
     router.GET("/", Root)
     router.POST("/:index/insert", Insert)
     router.GET("/:index/index", Index)
     router.GET("/:index/query", Query)
+    router.GET("/:index/aggregate", Aggregate)
     log.Fatal(http.ListenAndServe(":8080", router))
 }

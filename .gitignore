@@ -2,3 +2,4 @@
 *.geojson
 *dask-worker-space
 latlongdb/db
+latlongdb/db-index
