@@ -14,6 +14,46 @@ github.com/mkmik/argsort
 go run main.go
 ```
 
+### Insert
+
+```bash
+curl --location --request POST 'http://localhost:8080/test1/insert' \
+--header 'Content-Type: application/json' \
+--data-raw '[{
+    "lat": 1, "long": 1, "data": 1
+}]'
+```
+
+For bulk automatic inserts, check [insert.ipynb](insert.ipynb).
+
+### Index
+
+Before able to query, we need to index the data into Haversine Ball Tree first,
+
+```bash
+curl --request GET 'http://localhost:8080/test1/index'
+```
+
+```text
+{"status": "test1 success."}
+```
+
+### Query
+
+I want to query between 2KM and 6.4KM given a lat long,
+
+```bash
+time curl --request GET 'http://localhost:8080/test1/query?min_distance=2.0&max_distance=6.4&lat=2.950815010581982&long=101.62843052319319'
+```
+
+```text
+time curl --request GET 'http://localhost:8080/test1/query?min_distance=2.0&max_distance=6.4&lat=2.950815010581982&long=101.62843052319319'
+[{"distance":2.7435444445887867,"lat":0.051198664647091295,"long":1.774057179420072,"no":64},{"distance":2.908191238826303,"lat":0.05152282827772343,"long":1.7732942780718577,"no":66},{"distance":2.9317181243178023,"lat":0.05193458662198576,"long":1.7739059018276264,"no":79},{"distance":3.507168524801305,"lat":0.05111951985242149,"long":1.7733539637739804,"no":6},{"distance":3.7777900075606414,"lat":0.05186169237965742,"long":1.7742221286769562,"no":22},{"distance":4.123977332125158,"lat":0.051004354314852604,"long":1.7741656076241954,"no":90},{"distance":4.1841168418478,"lat":0.051892999414839665,"long":1.7732230026785,"no":60},{"distance":4.285398680702833,"lat":0.05106455168399484,"long":1.7732388569635495,"no":42},{"distance":4.468724842160898,"lat":0.051134292761990933,"long":1.7743489349145352,"no":2},{"distance":4.514926771470817,"lat":0.05212757078380303,"long":1.774082660067285,"no":76},{"distance":4.579484714434945,"lat":0.050788123678384846,"long":1.7738378296203465,"no":93},{"distance":4.698476735819023,"lat":0.050765947492623885,"long":1.7738019987425815,"no":13},{"distance":4.72191272415612,"lat":0.05129110975924112,"long":1.7744621345361506,"no":95},{"distance":5.068992707067398,"lat":0.052225952818291586,"long":1.7734220227025197,"no":53},{"distance":5.192150412617559,"lat":0.052303936773922394,"long":1.7736098597669325,"no":46},{"distance":5.6006044241166375,"lat":0.052022697865773015,"long":1.7744592265592674,"no":54},{"distance":5.724694769842948,"lat":0.05098346152590945,"long":1.7744856160475193,"no":74},{"distance":5.78003545647078,"lat":0.052390356234102604,"long":1.7735703558401288,"no":75},{"distance":6.007678145874556,"lat":0.05066778662816621,"long":1.7733100136898774,"no":72},{"distance":6.310308867273926,"lat":0.050554845585368484,"long":1.7734597481619931,"no":45}]
+real	0m0.098s
+user	0m0.004s
+sys	0m0.009s
+```
+
 ## tests
 
 1. Run [insert.ipynb](insert.ipynb).

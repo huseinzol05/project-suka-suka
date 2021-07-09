@@ -26,7 +26,8 @@ func Radian(degrees float64) float64 {
 	return degrees * (math.Pi / 180.0)
 }
 	
-func Query(db_index *leveldb.DB, label string, lat float64, long float64, distance float64, g *sync.WaitGroup) []map[string]interface{} {
+func Query(db_index *leveldb.DB, label string, lat float64, long float64, 
+	min_distance float64, max_distance float64, g *sync.WaitGroup) []map[string]interface{} {
 	var results []map[string]interface{}
 	var result map[string]interface{}
 	var data map[string]interface{}
@@ -35,18 +36,19 @@ func Query(db_index *leveldb.DB, label string, lat float64, long float64, distan
 	data_ := result["data"]
 	if data_ == nil {
 		distance_ := Dist(result["lat"].(float64), result["long"].(float64), lat, long)
-		if distance_ < distance + result["radius"].(float64){
+		rad := result["radius"].(float64)
+		if (distance_ >= min_distance - rad) && (distance_ <= max_distance + rad){
 			g.Add(1)
-			results_left := Query(db_index, label + "-left", lat, long, distance, g)
+			results_left := Query(db_index, label + "-left", lat, long, min_distance, max_distance, g)
 			g.Add(1)
-			results_right := Query(db_index, label + "-right", lat, long, distance, g)
+			results_right := Query(db_index, label + "-right", lat, long, min_distance, max_distance, g)
 			results = append(results, results_left...)
 			results = append(results, results_right...)
 		}
 	} else {
 		data = result["data"].(map[string]interface{})
 		distance_ := Dist(data["lat"].(float64), data["long"].(float64), lat, long)
-		if distance_ <= distance {
+		if (distance_ >= min_distance) && (distance_ <= max_distance) {
 			data["distance"] = distance_ * Earth_Radius_KM
 			results = append(results, data)
 		}
@@ -59,11 +61,12 @@ func main() {
 	g := &sync.WaitGroup{}
 	g.Add(1)
 	index := "test1"
-	radius_km := 10.0
+	min_radius_km := 3.0 / Earth_Radius_KM
+	max_radius_km := 10.0 / Earth_Radius_KM
 	lat := Radian(2.950815010581982)
 	long := Radian(101.62843052319319)
 	db_index, _ := leveldb.OpenFile("db-index/" + index, nil)
-	results := Query(db_index, "root", lat, long, radius_km / Earth_Radius_KM, g)
+	results := Query(db_index, "root", lat, long, min_radius_km, max_radius_km, g)
 	g.Wait()
 	distances := make([]float64, len(results))
 	for i := 0; i < len(results); i++ {
