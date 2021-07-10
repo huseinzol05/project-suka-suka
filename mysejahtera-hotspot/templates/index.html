@@ -6,7 +6,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <style>
         #map {
-            height: 70%;
+            height: 80%;
         }
 
         html,
@@ -88,19 +88,34 @@
         #target {
             width: 345px;
         }
+
+        #legend {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            padding: 10px;
+            margin: 10px;
+            border: 3px solid #000;
+        }
+
+        #legend h3 {
+            margin-top: 0;
+        }
+
+        .sp-preview-inner {
+            display: block;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
     </style>
 
     <p>
         Get the code and data at
         <a
             href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
-        Click on any polygons to get average case, total resolution points covered and area covered in km^2.
+        Click on any polygons to get average case and area covered in km^2.
     </p>
-    <p>Yellow color covered 0%-33% percentile of active cases, Orange color covered 33.1%-66% percentile of
-        active cases and Red color covered 66.1%-100% percentile of active cases in each state. Minimum 3
-        resolution points to assumed 1 cluster. Distance between one point to another point approximately ~0.33km,
-        except for Sabah
-        ~0.55km dan Sarawak ~0.66km.</p>
 
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
@@ -208,10 +223,13 @@
             polygons = [];
             cases = [];
             areas = [];
-            map = new google.maps.Map(document.getElementById("map"), { mapTypeId: google.maps.MapTypeId.TERRAIN });
+            map = new google.maps.Map(document.getElementById("map"),
+                { mapTypeId: google.maps.MapTypeId.TERRAIN, streetViewControl: false });
             const input = document.getElementById("pac-input");
             const searchBox = new google.maps.places.SearchBox(input);
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
             map.addListener("bounds_changed", () => {
                 searchBox.setBounds(map.getBounds());
             });
@@ -263,6 +281,8 @@
                         infoWin.open(map);
                     });
                 }
+                min_colors = { '#ffff00': 9999, '#ffa500': 9999, '#FF0000': 9999 }
+                max_colors = { '#ffff00': 0, '#ffa500': 0, '#FF0000': 0 }
 
                 $.ajax(data[s], {
                     dataType: 'json',
@@ -306,6 +326,8 @@
                             /* 
                              *  End of hack. */
 
+
+
                             const polygon = new google.maps.Polygon({
                                 paths: data[i]['polygon'],
                                 strokeColor: data[i]['color'],
@@ -326,9 +348,50 @@
                             polygons.push(polygon);
                             cases.push(data[i]['y']);
                             areas.push(area);
+
+                            if (data[i]['y'] < min_colors[data[i]['color']]) {
+                                min_colors[data[i]['color']] = data[i]['y']
+                            }
+                            if (data[i]['y'] > max_colors[data[i]['color']]) {
+                                max_colors[data[i]['color']] = data[i]['y']
+                            }
                         }
                         cases = argsort(cases);
                         areas = argsort(areas);
+
+                        if (min_colors['#ffff00'] == 9999) min_colors['#ffff00'] = 0;
+                        if (min_colors['#ffa500'] == 9999) min_colors['#ffa500'] = 0;
+                        if (min_colors['#FF0000'] == 9999) min_colors['#FF0000'] = 0;
+
+                        legend = document.getElementById("legend");
+                        legend.innerHTML = "<h3>Color</h3>";
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 255, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#ffff00'].toFixed(1) + " - " + max_colors['#ffff00'].toFixed(1)
+                        legend.appendChild(div);
+                        div = document.createElement("div");
+                        div.innerHTML = "<br>"
+                        legend.appendChild(div);
+
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 165, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#ffa500'].toFixed(1) + " - " + max_colors['#ffa500'].toFixed(1)
+                        legend.appendChild(div);
+                        div = document.createElement("div");
+                        div.innerHTML = "<br>"
+                        legend.appendChild(div);
+
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 0, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#FF0000'].toFixed(1) + " - " + max_colors['#FF0000'].toFixed(1)
+                        legend.appendChild(div);
+
 
                     },
                     error: function (jqXhr, textStatus, errorMessage) {
@@ -370,6 +433,9 @@
 <body>
     <input id="pac-input" class="controls" type="text" placeholder="Search Address" />
     <div id="map"></div>
+    <div id="legend">
+        <h3>Color</h3>
+    </div>
     <script
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=places&v=weekly"
         async></script>
