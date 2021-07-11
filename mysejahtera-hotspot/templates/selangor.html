@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MySejahtera Hotspot</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <style>
+        #map {
+            height: 80%;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #description {
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        #infowindow-content .title {
+            font-weight: bold;
+        }
+
+        #infowindow-content {
+            display: none;
+        }
+
+        #map #infowindow-content {
+            display: inline;
+        }
+
+        .pac-card {
+            margin: 10px 10px 0 0;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            font-family: Roboto;
+        }
+
+        #pac-container {
+            padding-bottom: 12px;
+            margin-right: 12px;
+        }
+
+        .pac-controls {
+            display: inline-block;
+            padding: 5px 11px;
+        }
+
+        .pac-controls label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        #pac-input {
+            background-color: #fff;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 400px;
+        }
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        #title {
+            color: #fff;
+            background-color: #4d90fe;
+            font-size: 25px;
+            font-weight: 500;
+            padding: 6px 12px;
+        }
+
+        #target {
+            width: 345px;
+        }
+
+        #legend {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            padding: 10px;
+            margin: 10px;
+            border: 3px solid #000;
+        }
+
+        #legend h3 {
+            margin-top: 0;
+        }
+
+        .sp-preview-inner {
+            display: block;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    </style>
+
+    <p>
+        Get the code and data at
+        <a
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
+        Click on any polygons to get average case and area covered in km^2.
+    </p>
+
+    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
+
+    <select id="states">
+        <option value="selangor">Selangor</option>
+    </select>
+    <button id="1-top-button" class="top-button">Top 1 active cases</button>
+    <button id="2-top-button" class="top-button">Top 2 active cases</button>
+    <button id="3-top-button" class="top-button">Top 3 active cases</button>
+    <button id="1-area-button" class="area-button">Top 1 area km^2</button>
+    <button id="2-area-button" class="area-button">Top 2 area km^2</button>
+    <button id="3-area-button" class="area-button">Top 3 area km^2</button>
+    <br></br>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+
+        $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+            dataType: 'json',
+            timeout: 5000,
+            success: function (data, status, xhr) {
+                $("#last-update").text(data['last-update'])
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+                $("#last-update").text('2021-06-15')
+            }
+        });
+
+        zoom = {
+            'kl': 11.5,
+            'perlis': 11,
+            'sabah': 8,
+            'putrajaya': 13,
+            'kedah': 9,
+            'sarawak': 7,
+            'penang': 10.5,
+            'johor': 9,
+            'kelantan': 9,
+            'melaka': 10.5,
+            'negeri-sembilan': 9.5,
+            'pahang': 9,
+            'perak': 9.5,
+            'selangor': 10,
+            'terengganu': 8.5,
+            'labuan': 12
+        }
+        center = {
+            'selangor': [3.355404307017544, 101.50504664035088],
+        }
+
+        data = {
+            'selangor': 'http://localhost:5000/selangor',
+        }
+
+        function sortFloat(a, b) { return a[0] - b[0]; };
+        let argsort = a => a.map((v, i) => [v, i]).sort(sortFloat).map(i => i[1]);
+
+        function initMap() {
+
+            let map;
+            polygons = [];
+            cases = [];
+            areas = [];
+            map = new google.maps.Map(document.getElementById("map"),
+                { mapTypeId: google.maps.MapTypeId.TERRAIN, streetViewControl: false });
+            const input = document.getElementById("pac-input");
+            const searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+
+                if (places.length == 0) {
+                    return;
+                }
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach((place) => {
+                    if (!place.geometry || !place.geometry.location) {
+                        alert("Returned place contains no geometry");
+                        return;
+                    }
+
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+                map.fitBounds(bounds);
+            });
+
+            function init() {
+
+                polygons.forEach((polygon) => {
+                    polygon.setMap(null);
+                });
+                polygons = [];
+                cases = [];
+                areas = [];
+
+                s = $("#states").val()
+                map.setZoom(zoom[s]);
+                map.setCenter(new google.maps.LatLng(center[s][0], center[s][1]))
+
+                var infoWin = new google.maps.InfoWindow();
+
+                function makeClickable(polygon) {
+                    google.maps.event.addListener(polygon, "click", function () {
+                        console.log(polygon);
+                        case_string = 'Average case: ' + polygon.case.toString() + '<br>'
+                        resolution_string = 'Total resolution points: ' + polygon.total.toString() + '<br>'
+                        area_string = 'Area hotspot: ' + polygon.area.toFixed(6) + ' km^2 <br>'
+                        infoWin.setPosition(polygon.center);
+                        infoWin.setContent(case_string + resolution_string + area_string);
+                        infoWin.open(map);
+                    });
+                }
+                min_colors = { '#ffff00': 9999, '#ffa500': 9999, '#FF0000': 9999 }
+                max_colors = { '#ffff00': 0, '#ffa500': 0, '#FF0000': 0 }
+
+                $.ajax(data[s], {
+                    dataType: 'json',
+                    timeout: 5000,
+                    success: function (data, status, xhr) {
+
+                        for (var i = 0; i < data.length; i++) {
+                            var total_lat = 0;
+                            var total_lng = 0
+                            for (var k = 0; k < data[i]['polygon'].length; k++) {
+                                total_lat += data[i]['polygon'][k]['lat'];
+                                total_lng += data[i]['polygon'][k]['lng'];
+                            }
+                            var center_lat = total_lat / data[i]['polygon'].length;
+                            var center_lng = total_lng / data[i]['polygon'].length;
+                            var area = data[i]['area'] * 6372.8;
+                            /*  This is a hack; the colours might be recoded in
+                             *  the source data instead. (2021-07-08)
+                             *
+                             *  The motivation to change the colours is I would 
+                             *  mod the colour scheme from null/blue/yellow/red 
+                             *  to green/yellow/orange/red ... because the 
+                             *  null/blue aspects may be confused in terms of safety. 
+                             */
+
+                            switch (data[i]['color'].toLowerCase()) {
+
+                                // blue to yellow
+                                case '#0000ff':
+                                    data[i]['color'] = '#ffff00'
+                                    break
+
+                                // yellow to orange
+                                case '#ffff00':
+                                    data[i]['color'] = '#ffa500'
+                                    break
+
+                            }
+
+
+                            /* 
+                             *  End of hack. */
+
+
+
+                            const polygon = new google.maps.Polygon({
+                                paths: data[i]['polygon'],
+                                strokeColor: data[i]['color'],
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: data[i]['color'],
+                                fillOpacity: 0.35,
+                                case: data[i]['y'],
+                                total: data[i]['total'],
+                                center: new google.maps.LatLng(center_lat, center_lng),
+                                polys: data[i]['polygon'],
+                                centers: [center_lat, center_lng],
+                                index: i,
+                                area: area,
+                            });
+                            polygon.setMap(map);
+                            makeClickable(polygon);
+                            polygons.push(polygon);
+                            cases.push(data[i]['y']);
+                            areas.push(area);
+
+                            if (data[i]['y'] < min_colors[data[i]['color']]) {
+                                min_colors[data[i]['color']] = data[i]['y']
+                            }
+                            if (data[i]['y'] > max_colors[data[i]['color']]) {
+                                max_colors[data[i]['color']] = data[i]['y']
+                            }
+                        }
+                        cases = argsort(cases);
+                        areas = argsort(areas);
+
+                        if (min_colors['#ffff00'] == 9999) min_colors['#ffff00'] = 0;
+                        if (min_colors['#ffa500'] == 9999) min_colors['#ffa500'] = 0;
+                        if (min_colors['#FF0000'] == 9999) min_colors['#FF0000'] = 0;
+
+                        legend = document.getElementById("legend");
+                        legend.innerHTML = "<h3>Color</h3>";
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 255, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#ffff00'].toFixed(1) + " - " + max_colors['#ffff00'].toFixed(1)
+                        legend.appendChild(div);
+                        div = document.createElement("div");
+                        div.innerHTML = "<br>"
+                        legend.appendChild(div);
+
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 165, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#ffa500'].toFixed(1) + " - " + max_colors['#ffa500'].toFixed(1)
+                        legend.appendChild(div);
+                        div = document.createElement("div");
+                        div.innerHTML = "<br>"
+                        legend.appendChild(div);
+
+                        div = document.createElement("div");
+                        div.className = "sp-preview-inner"
+                        div.style.backgroundColor = "rgb(255, 0, 0)"
+                        div.style.fontSize = "14px"
+                        div.innerHTML = "Active case: " + min_colors['#FF0000'].toFixed(1) + " - " + max_colors['#FF0000'].toFixed(1)
+                        legend.appendChild(div);
+
+
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert('Error to get json data from https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot, please try again');
+                    }
+                });
+            }
+
+            init();
+
+            $('#states').on('change', function () {
+                init();
+            });
+
+            $('.top-button').on('click', function () {
+                console.log($(this));
+                index = parseInt($(this).attr('id').split('-')[0])
+                index = cases[cases.length - index]
+                console.log(index)
+                polygon = polygons[index]
+                map.setZoom(14);
+                map.setCenter(new google.maps.LatLng(polygon.centers[0], polygon.centers[1]))
+            });
+            $('.area-button').on('click', function () {
+                console.log($(this));
+                index = parseInt($(this).attr('id').split('-')[0])
+                index = areas[areas.length - index]
+                console.log(index)
+                polygon = polygons[index]
+                map.setZoom(14);
+                map.setCenter(new google.maps.LatLng(polygon.centers[0], polygon.centers[1]))
+            });
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <input id="pac-input" class="controls" type="text" placeholder="Search Address" />
+    <div id="map"></div>
+    <div id="legend">
+        <h3>Color</h3>
+    </div>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx8LOUggSd1YKjYwVjiAUOvf5AkNXeW9Y&callback=initMap&libraries=places&v=weekly"
+        async></script>
+</body>
+
+</html>
