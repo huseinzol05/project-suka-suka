@@ -15,6 +15,11 @@ def test():
     return render_template('./selangor.html')
 
 
+@app.route("/leaflet")
+def leaflet():
+    return render_template('./leaflet.html')
+
+
 @app.route("/selangor")
 def selangor():
     with open('data/selangor-test.json') as fopen:
