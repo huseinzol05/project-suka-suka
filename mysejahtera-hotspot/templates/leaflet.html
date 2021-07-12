@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MySejahtera Hotspot</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@3.0.0/dist/geosearch.css" /> -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <!-- <script src="https://unpkg.com/leaflet-geosearch@3.0.0/dist/geosearch.umd.js"></script> -->
+
+    <style>
+        #map {
+            height: 80%;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #legend {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            padding: 10px;
+            margin: 10px;
+            border: 3px solid #000;
+        }
+
+        .leaflet-gac-wrapper {
+            height: 30px;
+        }
+
+        .leaflet-control-container .leaflet-gac-control {
+            width: 400px;
+            height: 30px;
+            padding: 0 7px;
+            border-radius: 5px;
+            border: 1px #d0d0d0 solid;
+        }
+
+        .leaflet-control-container .leaflet-right .leaflet-gac-control {
+            position: absolute;
+            right: 0;
+            transition: width .3s ease .15s;
+        }
+
+        .leaflet-control-container .leaflet-gac-control:focus {
+            outline: none;
+        }
+
+        .leaflet-control-container .leaflet-gac-search-btn {
+            background: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+        }
+
+        .leaflet-control-container .leaflet-gac-search-btn .leaflet-gac-search-icon {
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABOUlEQVQ4T6XTLUgmQRgH8N+Ligd+FOu1ww+wKPhxlwxXxHYnqCAGQZtgMBgU4eWaXLhyCgYxiAYVk6igJotgEaNiNYgGL6kHJwOzsO+yGzw3zszzm5nnP1vyzq+UU9+JUbTiCWdYw13eXmmgCr8wlbPwERPYys6lgVA8jSvM4RQfMIQF1KIfR2kkAdpxiRv04CGzUx9OcI02/EvmE+AH5jGG9YK+bmMQ3TjPApsYQXPcJc+Ywc/Y4I0ssIpxdOCi4ATl2Ivv2M0Ck1jBImZzgOrYoxZ8xG0WqI9Hb4pX2UkhNViKMe5jIC+FMPYVezGu4xhjHb7hUyx6wXDeFRK0C79jlMnYX4SmhZfZiwok7ymHwpBGyPs5RnaPRhzicxopAop+sYAc4Av+BPStQIAbsByffPl/gIrTvQLbJDoR8K3H6QAAAABJRU5ErkJggg==") no-repeat center center;
+        }
+
+        .leaflet-control-container .leaflet-gac-hidden {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+            transition: width .3s ease .15s;
+        }
+
+        .leaflet-center {
+            position: relative !important;
+            left: 0;
+            right: 0;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .leaflet-center .leaflet-control {
+            bottom: 0;
+        }
+
+        .leaflet-control-container .leaflet-control-bottomcenter {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .legend {
+            line-height: 18px;
+            color: #555;
+        }
+
+        .legend i {
+            width: 20px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        .info {
+            padding: 6px 8px;
+            background: white;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+    </style>
+
+    <p>
+        Get the code and data at
+        <a
+            href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
+        Click on any polygons to get average case and area covered in km^2.
+    </p>
+
+    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
+
+    <select id="states">
+        <option value="kl">Federal Territory of Kuala Lumpur</option>
+        <option value="sabah">Sabah</option>
+        <option value="putrajaya">Federal Territory of Putrajaya</option>
+        <option value="kedah">Kedah</option>
+        <option value="sarawak">Sarawak</option>
+        <option value="penang">Penang</option>
+        <option value="johor">Johor</option>
+        <option value="kelantan">Kelantan</option>
+        <option value="melaka">Melaka</option>
+        <option value="negeri-sembilan">Negeri Sembilan</option>
+        <option value="pahang">Pahang</option>
+        <option value="perak">Perak</option>
+        <option value="selangor">Selangor</option>
+        <option value="terengganu">Terengganu</option>
+        <option value="labuan">Labuan</option>
+    </select>
+    <button id="1-top-button" class="top-button">Top 1 active cases</button>
+    <button id="2-top-button" class="top-button">Top 2 active cases</button>
+    <button id="3-top-button" class="top-button">Top 3 active cases</button>
+    <button id="1-area-button" class="area-button">Top 1 area km^2</button>
+    <button id="2-area-button" class="area-button">Top 2 area km^2</button>
+    <button id="3-area-button" class="area-button">Top 3 area km^2</button>
+    <br></br>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJb3p7pPWwcgLuLh7np6W8B3-tPjpf35k&libraries=places"></script>
+<script>
+
+    (function () {
+
+        L.Map.prototype._initControlPos = function (_initControlPos) {
+            return function () {
+                _initControlPos.apply(this, arguments);
+                this._controlCorners['topcenter'] = L.DomUtil.create('div', 'leaflet-top leaflet-center', this._controlContainer);
+                this._controlCorners['bottomcenter'] =
+                    L.DomUtil.create(
+                        'div',
+                        'leaflet-bottom leaflet-center',
+                        L.DomUtil.create('div', 'leaflet-control-bottomcenter', this._controlContainer)
+                    );
+            };
+        }(L.Map.prototype._initControlPos);
+        L.GPlaceAutocomplete = {};
+
+        L.Control.GPlaceAutocomplete = L.Control.extend({
+            options: {
+                position: "topcenter",
+                prepend: true,
+                collapsed_mode: false,
+                placeholder: null,
+                autocomplete_options: { componentRestrictions: { country: "my" }, }
+            },
+
+            collapsedModeIsExpanded: true,
+
+            autocomplete: null,
+            icon: null,
+            searchBox: null,
+
+            initialize: function (options) {
+                if (options) {
+                    L.Util.setOptions(this, options);
+                }
+                if (!this.options.callback) {
+                    this.options.callback = this.onLocationComplete;
+                }
+                this._buildContainer();
+            },
+
+            _buildContainer: function () {
+
+                // build structure
+                this.container = L.DomUtil.create("div", "leaflet-gac-container leaflet-bar");
+                var searchWrapper = L.DomUtil.create("div", "leaflet-gac-wrapper");
+                this.searchBox = L.DomUtil.create("input", "leaflet-gac-control");
+                this.autocomplete = new google.maps.places.Autocomplete(this.searchBox, this.options.autocomplete_options);
+
+                if (this.options.placeholder) {
+                    this.searchBox.setAttribute("placeholder", this.options.placeholder)
+                }
+
+                // if collapse mode set - create icon and register events
+                if (this.options.collapsed_mode) {
+                    this.collapsedModeIsExpanded = false;
+
+                    this.icon = L.DomUtil.create("div", "leaflet-gac-search-btn");
+                    L.DomEvent
+                        .on(this.icon, "click", this._showSearchBar, this);
+
+                    this.icon.appendChild(
+                        L.DomUtil.create("div", "leaflet-gac-search-icon")
+                    );
+
+                    searchWrapper.appendChild(
+                        this.icon
+                    );
+                    L.DomUtil.addClass(this.searchBox, "leaflet-gac-hidden");
+                }
+
+                searchWrapper.appendChild(
+                    this.searchBox
+                );
+                this.container.appendChild(
+                    searchWrapper
+                );
+
+            },
+
+            _showSearchBar: function () {
+                this._toggleSearch(true);
+            },
+
+            _hideSearchBar: function () {
+                if (this.collapsedModeIsExpanded) {
+                    this._toggleSearch(false);
+                }
+            },
+
+            _toggleSearch: function (shouldDisplaySearch) {
+                if (shouldDisplaySearch) {
+                    L.DomUtil.removeClass(this.searchBox, "leaflet-gac-hidden");
+                    L.DomUtil.addClass(this.icon, "leaflet-gac-hidden");
+                    this.searchBox.focus();
+                } else {
+                    L.DomUtil.addClass(this.searchBox, "leaflet-gac-hidden");
+                    L.DomUtil.removeClass(this.icon, "leaflet-gac-hidden");
+                }
+                this.collapsedModeIsExpanded = shouldDisplaySearch;
+            },
+
+            //***
+            // Default success callback
+            //***
+
+            onLocationComplete: function (place, map) {
+                // default callback
+                if (!place.geometry) {
+                    alert("Location not found");
+                    return;
+                }
+                map.panTo([
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                ]);
+
+            },
+
+            onAdd: function () {
+                // stop propagation of click events
+                L.DomEvent.addListener(this.container, 'click', L.DomEvent.stop);
+                L.DomEvent.disableClickPropagation(this.container);
+                if (this.options.collapsed_mode) {
+                    // if collapse mode - register handler
+                    this._map.on('dragstart click', this._hideSearchBar, this);
+                }
+                return this.container;
+            },
+
+            addTo: function (map) {
+                this._map = map;
+
+                var container = this._container = this.onAdd(map),
+                    pos = this.options.position,
+                    corner = map._controlCorners[pos];
+
+                L.DomUtil.addClass(container, 'leaflet-control');
+                if (this.options.prepend) {
+                    corner.insertBefore(container, corner.firstChild);
+                } else {
+                    corner.appendChild(container)
+                }
+
+                var callback = this.options.callback;
+                var _this = this;
+                google.maps.event.addListener(this.autocomplete, "place_changed", function () {
+                    callback(_this.autocomplete.getPlace(), map);
+                });
+
+                return this;
+            }
+
+
+        });
+    })();
+
+    $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+        dataType: 'json',
+        timeout: 5000,
+        success: function (data, status, xhr) {
+            $("#last-update").text(data['last-update'])
+        },
+        error: function (jqXhr, textStatus, errorMessage) {
+            $("#last-update").text('2021-06-15')
+        }
+    });
+
+    zoom = {
+        'kl': 11.5,
+        'perlis': 11,
+        'sabah': 8,
+        'putrajaya': 13,
+        'kedah': 9,
+        'sarawak': 7,
+        'penang': 10.5,
+        'johor': 9,
+        'kelantan': 9,
+        'melaka': 10.5,
+        'negeri-sembilan': 9.5,
+        'pahang': 9,
+        'perak': 9.5,
+        'selangor': 10,
+        'terengganu': 8.5,
+        'labuan': 12
+    }
+    center = {
+        'kl': [3.1392120930232563, 101.69246448837208],
+        'perlis': [6.524751999999999, 100.22751252631578],
+        'sabah': [5.27816915, 116.97592164999999],
+        'putrajaya': [2.933356648648649, 101.68667875675675],
+        'kedah': [5.861430566265059, 100.67029332530122],
+        'sarawak': [2.738490452054794, 113.39022178082192],
+        'penang': [5.326611172413791, 100.41983951724136],
+        'johor': [1.891816231746032, 103.49781690793652],
+        'kelantan': [5.199608448780487, 102.06351577073173],
+        'melaka': [2.290535240310077, 102.30847203100777],
+        'negeri-sembilan': [2.618115251655629, 102.08174941721853],
+        'pahang': [4.071478952606635, 102.32340633175355],
+        'perak': [4.733874, 101.14707000581394],
+        'selangor': [3.355404307017544, 101.50504664035088],
+        'terengganu': [4.825278525714285, 102.89730278285715],
+        'labuan': [5.314517, 115.221615]
+    }
+
+    data = {
+        'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
+        'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
+        'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
+        'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
+        'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
+        'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
+        'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
+        'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
+        'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
+        'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
+        'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
+        'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
+        'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
+        'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
+        'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
+    }
+
+    function sortFloat(a, b) { return a[0] - b[0]; };
+    let argsort = a => a.map((v, i) => [v, i]).sort(sortFloat).map(i => i[1]);
+
+    var mymap = L.map('map');
+    var marker;
+    var legend;
+    polygons = [];
+    cases = [];
+    areas = [];
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            'Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1
+    }).addTo(mymap);
+
+    new L.Control.GPlaceAutocomplete({
+        callback: function (place) {
+            if (marker != null) marker.remove();
+            var loc = place.geometry.location;
+            mymap.setView([loc.lat(), loc.lng()]);
+            mymap.setZoom(15);
+            marker = L.marker([loc.lat(), loc.lng()]).addTo(mymap);
+        }
+    }).addTo(mymap);
+
+    function init() {
+
+        s = $("#states").val()
+        mymap.setView([center[s][0], center[s][1]], zoom[s]);
+
+        polygons.forEach((polygon) => {
+            polygon.remove()
+        });
+        if (legend != null) legend.remove();
+        polygons = [];
+        cases = [];
+        areas = [];
+        min_colors = { '#ffff00': 9999, '#ffa500': 9999, '#FF0000': 9999 }
+        max_colors = { '#ffff00': 0, '#ffa500': 0, '#FF0000': 0 }
+
+
+        $.ajax(data[s], {
+            dataType: 'json',
+            timeout: 5000,
+            success: function (data, status, xhr) {
+
+                for (var i = 0; i < data.length; i++) {
+                    p = []
+                    for (var k = 0; k < data[i]['polygon'].length; k++) {
+                        p.push([data[i]['polygon'][k]['lat'], data[i]['polygon'][k]['lng']]);
+                    }
+                    var area = data[i]['area'] * 6372.8;
+
+                    switch (data[i]['color'].toLowerCase()) {
+                        // blue to yellow
+                        case '#0000ff':
+                            data[i]['color'] = '#ffff00'
+                            break
+
+                        // yellow to orange
+                        case '#ffff00':
+                            data[i]['color'] = '#ffa500'
+                            break
+                    }
+
+                    case_string = 'Average case: ' + data[i]['y'].toFixed(3) + '<br>'
+                    resolution_string = 'Total resolution points: ' + data[i]['total'].toString() + '<br>'
+                    area_string = 'Area hotspot: ' + area.toFixed(6) + ' km^2 <br>'
+                    p = L.polygon(p, {
+                        color: data[i]['color'],
+                        fillColor: data[i]['color'],
+                        fillOpacity: 0.5,
+                    }).addTo(mymap).bindPopup(case_string + resolution_string + area_string);
+                    polygons.push(p);
+                    cases.push(data[i]['y']);
+                    areas.push(area);
+
+                    if (data[i]['y'] < min_colors[data[i]['color']]) {
+                        min_colors[data[i]['color']] = data[i]['y']
+                    }
+                    if (data[i]['y'] > max_colors[data[i]['color']]) {
+                        max_colors[data[i]['color']] = data[i]['y']
+                    }
+
+                }
+
+                cases = argsort(cases);
+                areas = argsort(areas);
+
+                if (min_colors['#ffff00'] == 9999) min_colors['#ffff00'] = 0;
+                if (min_colors['#ffa500'] == 9999) min_colors['#ffa500'] = 0;
+                if (min_colors['#FF0000'] == 9999) min_colors['#FF0000'] = 0;
+
+                legend = L.control({ position: 'bottomright' });
+                legend.onAdd = function (map) {
+
+                    var div = L.DomUtil.create('div', 'info legend');
+                    div.innerHTML +=
+                        '<i style="background:rgb(255, 255, 0)"></i> ' +
+                        min_colors['#ffff00'].toFixed(1) + '&ndash;' + max_colors['#ffff00'].toFixed(1) + '<br>';
+                    div.innerHTML +=
+                        '<i style="background:rgb(255, 165, 0)"></i> ' +
+                        min_colors['#ffa500'].toFixed(1) + '&ndash;' + max_colors['#ffa500'].toFixed(1) + '<br>';
+                    div.innerHTML +=
+                        '<i style="background:rgb(255, 0, 0)"></i> ' +
+                        min_colors['#FF0000'].toFixed(1) + '&ndash;' + max_colors['#FF0000'].toFixed(1) + '<br>';
+                    return div;
+                };
+
+                legend.addTo(mymap);
+
+            }
+        })
+
+
+    }
+
+    init();
+
+    $('#states').on('change', function () {
+        init();
+    });
+
+    $('.top-button').on('click', function () {
+        console.log($(this));
+        index = parseInt($(this).attr('id').split('-')[0])
+        index = cases[cases.length - index]
+        console.log(index)
+        c = polygons[index].getCenter()
+        mymap.setView([c['lat'], c['lng']], 14);
+    });
+    $('.area-button').on('click', function () {
+        console.log($(this));
+        index = parseInt($(this).attr('id').split('-')[0])
+        index = areas[areas.length - index]
+        console.log(index)
+        c = polygons[index].getCenter()
+        mymap.setView([c['lat'], c['lng']], 14);
+    });
+
+</script>
+
+</html>

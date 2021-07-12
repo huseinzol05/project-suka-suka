@@ -120,21 +120,7 @@
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
 
     <select id="states">
-        <option value="kl">Federal Territory of Kuala Lumpur</option>
-        <option value="sabah">Sabah</option>
-        <option value="putrajaya">Federal Territory of Putrajaya</option>
-        <option value="kedah">Kedah</option>
-        <option value="sarawak">Sarawak</option>
-        <option value="penang">Penang</option>
-        <option value="johor">Johor</option>
-        <option value="kelantan">Kelantan</option>
-        <option value="melaka">Melaka</option>
-        <option value="negeri-sembilan">Negeri Sembilan</option>
-        <option value="pahang">Pahang</option>
-        <option value="perak">Perak</option>
         <option value="selangor">Selangor</option>
-        <option value="terengganu">Terengganu</option>
-        <option value="labuan">Labuan</option>
     </select>
     <button id="1-top-button" class="top-button">Top 1 active cases</button>
     <button id="2-top-button" class="top-button">Top 2 active cases</button>
@@ -178,40 +164,11 @@
             'labuan': 12
         }
         center = {
-            'kl': [3.1392120930232563, 101.69246448837208],
-            'perlis': [6.524751999999999, 100.22751252631578],
-            'sabah': [5.27816915, 116.97592164999999],
-            'putrajaya': [2.933356648648649, 101.68667875675675],
-            'kedah': [5.861430566265059, 100.67029332530122],
-            'sarawak': [2.738490452054794, 113.39022178082192],
-            'penang': [5.326611172413791, 100.41983951724136],
-            'johor': [1.891816231746032, 103.49781690793652],
-            'kelantan': [5.199608448780487, 102.06351577073173],
-            'melaka': [2.290535240310077, 102.30847203100777],
-            'negeri-sembilan': [2.618115251655629, 102.08174941721853],
-            'pahang': [4.071478952606635, 102.32340633175355],
-            'perak': [4.733874, 101.14707000581394],
             'selangor': [3.355404307017544, 101.50504664035088],
-            'terengganu': [4.825278525714285, 102.89730278285715],
-            'labuan': [5.314517, 115.221615]
         }
 
         data = {
-            'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
-            'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
-            'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
-            'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
-            'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
-            'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
-            'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
-            'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
-            'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
-            'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
-            'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
-            'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-            'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
-            'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
-            'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
+            'selangor': 'http://localhost:5000/selangor',
         }
 
         function sortFloat(a, b) { return a[0] - b[0]; };

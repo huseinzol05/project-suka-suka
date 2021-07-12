@@ -199,7 +199,8 @@
 
             let map;
             circles = [];
-            map = new google.maps.Map(document.getElementById("map"), {});
+            map = new google.maps.Map(document.getElementById("map"),
+                { mapTypeId: google.maps.MapTypeId.TERRAIN, streetViewControl: false });
             const input = document.getElementById("pac-input");
             const searchBox = new google.maps.places.SearchBox(input);
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);

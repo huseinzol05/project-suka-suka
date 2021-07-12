@@ -4,9 +4,9 @@ import geopandas
 from shapely.geometry.multilinestring import MultiLineString
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
-from shapely.ops import cascaded_union
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import Point
+from shapely.ops import cascaded_union
 from geopandas import GeoDataFrame
 from libpysal.cg.alpha_shapes import alpha_shape_auto
 from sklearn.cluster import DBSCAN
@@ -21,21 +21,7 @@ today = str(date.today())
 today
 
 STATES = {
-    'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Johor-points.json-points-cases.json',
-    'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kedah-points.json-points-cases.json',
-    'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Kelantan-points.json-points-cases.json',
-    'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Kuala%20Lumpur-points.json-points-cases.json',
-    'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Labuan-points.json-points-cases.json',
-    'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Melaka-points.json-points-cases.json',
-    'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Negeri%20Sembilan-points.json-points-cases.json',
-    'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Pahang-points.json-points-cases.json',
-    'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Penang-points.json-points-cases.json',
-    'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Perak-points.json-points-cases.json',
-    'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Federal%20Territory%20of%20Putrajaya-points.json-points-cases.json',
-    'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sabah-points.json-points-cases.json',
-    'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Sarawak-points.json-points-cases.json',
     'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Selangor-points.json-points-cases.json',
-    'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-density/data/Terengganu-points.json-points-cases.json',
 }
 
 COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
@@ -133,9 +119,13 @@ for STATE, LINK in STATES.items():
             polys = polys.to_crs('crs')
 
             for k in range(len(polys)):
-                if polys.iloc[k].area <= 1e-12:
+                p = polys.iloc[k]
+                if p.area <= 1e-12:
                     continue
-                polygons.append({'polygon': polys.iloc[k].convex_hull, 'y': [ys[k]],
+                if not p.is_valid:
+                    p = p.buffer(0)
+                    print(p.is_valid)
+                polygons.append({'polygon': p, 'y': [ys[k]],
                                 'total': totals[k], 'color': COLOR[i]})
 
             already_processed.add(str(boundaries))
@@ -167,7 +157,7 @@ for STATE, LINK in STATES.items():
                 if isinstance(l, GeometryCollection):
                     l = [p for p in l if isinstance(p, Polygon)]
                     l = cascaded_union(l)
-                polygons_[i]['polygon'] = l.convex_hull
+                polygons_[i]['polygon'] = l
                 polygons_[i]['y'].extend(polygons_[k]['y'])
                 polygons_[i]['total'] += polygons_[k]['total']
                 processed.add(k)
@@ -209,17 +199,25 @@ for STATE, LINK in STATES.items():
         if not inside:
             post.append(r[i])
 
+    r = []
     for i in range(len(post)):
-        polygons_ = []
-        x, y = post[i]['polygon'].exterior.coords.xy
-        area = post[i]['polygon'].area
-        for x_, y_ in zip(x, y):
-            polygons_.append({'lat': y_, 'lng': x_})
-        post[i]['polygon'] = polygons_
-        post[i]['area'] = area
+        if isinstance(post[i]['polygon'], MultiPolygon):
+            p = [p for p in post[i]['polygon'] if isinstance(p, Polygon)]
+        else:
+            p = [post[i]['polygon']]
+        for p_ in p:
+            polygons_ = []
+            x, y = p_.exterior.coords.xy
+            area = p_.area
+            for x_, y_ in zip(x, y):
+                polygons_.append({'lat': y_, 'lng': x_})
+            post[i]['polygon'] = polygons_
+            post[i]['area'] = area
+            r.append({'area': area, 'polygon': polygons_, 'color': post[i]['color'],
+                      'y': post[i]['y'], 'total': post[i]['total']})
 
-    with open(f'data/{STATE}.json', 'w') as fopen:
-        json.dump(post, fopen)
+    with open(f'data/{STATE}-test.json', 'w') as fopen:
+        json.dump(r, fopen)
 
     os.remove(file)
 
