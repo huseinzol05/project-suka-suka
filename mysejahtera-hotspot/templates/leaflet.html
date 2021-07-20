@@ -126,7 +126,8 @@
         Get the code and data at
         <a
             href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
-        Click on any polygons to get average case and area covered in km^2.
+        Click on any polygons to get average case and area covered in km^2. Click on any emergency icons to get
+        highest case and address.
     </p>
 
     <label>Last update, <span id="last-update"></span>, Choose a state:</label>
@@ -395,12 +396,19 @@
     function sortFloat(a, b) { return a[0] - b[0]; };
     let argsort = a => a.map((v, i) => [v, i]).sort(sortFloat).map(i => i[1]);
 
+    var emergencyIcon = L.icon({
+        iconUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/15-healthcare-and-medical/emergency.png',
+
+        iconSize: [12, 12],
+    });
+
     var mymap = L.map('map');
     var marker;
     var legend;
     polygons = [];
     cases = [];
     areas = [];
+    markers = [];
 
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         maxZoom: 18,
@@ -421,6 +429,34 @@
         }
     }).addTo(mymap);
 
+    function onClick(e) {
+        var popup = e.target.getPopup();
+        console.log(popup);
+        latlong = this.getLatLng()
+        lat = latlong.lat
+        long = latlong.lng
+
+        nominatim = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + long + '&format=json'
+        address = 'Not available'
+        $.ajax(nominatim, {
+            async: false,
+            dataType: 'json',
+            timeout: 2000,
+            success: function (data, status, xhr) {
+                try { address = data['display_name'] }
+                catch (err) { console.log(err) }
+
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+            }
+        })
+        latlong_string = 'Lat: ' + lat + ', ' + 'Long: ' + long + '<br>'
+        address_string = address + '<br>'
+        case_string = 'Total case: ' + this.options.case.toString()
+        popup.setContent(latlong_string + address_string + case_string);
+        popup.update();
+    }
+
     function init() {
 
         s = $("#states").val()
@@ -428,6 +464,9 @@
 
         polygons.forEach((polygon) => {
             polygon.remove()
+        });
+        markers.forEach((marker) => {
+            marker.remove()
         });
         if (legend != null) legend.remove();
         polygons = [];
@@ -480,6 +519,20 @@
                         max_colors[data[i]['color']] = data[i]['y']
                     }
 
+                    if (data[i]['color'] == '#FF0000') {
+                        for (var k = 0; k < data[i]['highest'].length; k++) {
+                            if (data[i]['highest'][k][2] > 3) {
+                                latlong = [data[i]['highest'][k][0], data[i]['highest'][k][1]]
+                                marker = L.marker(latlong, { icon: emergencyIcon, case: data[i]['highest'][k][2] })
+                                marker.addTo(mymap)
+                                marker.bindPopup('loading..')
+                                marker.on('click', onClick);
+                                markers.push(marker)
+                            }
+
+                        }
+                    }
+
                 }
 
                 cases = argsort(cases);
@@ -493,6 +546,7 @@
                 legend.onAdd = function (map) {
 
                     var div = L.DomUtil.create('div', 'info legend');
+                    div.innerHTML += '<i><img src="https://uxwing.com/wp-content/themes/uxwing/download/15-healthcare-and-medical/emergency.png" width="100%"></i>High case<br>';
                     div.innerHTML +=
                         '<i style="background:rgb(255, 255, 0)"></i> ' +
                         min_colors['#ffff00'].toFixed(1) + '&ndash;' + max_colors['#ffff00'].toFixed(1) + '<br>';

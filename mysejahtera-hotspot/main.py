@@ -64,16 +64,22 @@ def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
     polys = []
     cluster_lbls = []
     y, totals = [], []
+    highests = []
     for sub in g.groups:
         try:
+            max_val = np.percentile(xys.loc[g.groups[sub], 2], 80)
+            highest = xys.loc[g.groups[sub], [0, 1, 2]]
+            highest = highest[highest[2] >= max_val]
+            highest = np.mean(highest, 0).tolist()
             polys.append(_asa((xys.loc[g.groups[sub], xy].values, 1)))
             y.append(scores.loc[g.groups[sub]].mean())
             totals.append(scores.loc[g.groups[sub]].shape[0])
             cluster_lbls.append(sub)
+            highests.append(highest)
         except:
             pass
     polys = GeoSeries(polys, index=cluster_lbls, crs=crs)
-    return polys, y, totals
+    return polys, y, totals, highests
 
 
 def _asa(pts_s):
@@ -129,14 +135,14 @@ for STATE, LINK in STATES.items():
             for no in range(len(clustering.labels_)):
                 labels[filtered_df_index[no]] = clustering.labels_[no]
 
-            polys, ys, totals = get_cluster_boundary(pd.Series(labels), db, db[2], crs=db.crs)
+            polys, ys, totals, highests = get_cluster_boundary(pd.Series(labels), db, db[2], crs=db.crs)
             polys = polys.to_crs('crs')
 
             for k in range(len(polys)):
                 if polys.iloc[k].area <= 1e-12:
                     continue
                 polygons.append({'polygon': polys.iloc[k].convex_hull, 'y': [ys[k]],
-                                'total': totals[k], 'color': COLOR[i]})
+                                'total': totals[k], 'color': COLOR[i], 'highest': [highests[k]]})
 
             already_processed.add(str(boundaries))
         except Exception as e:
@@ -169,6 +175,7 @@ for STATE, LINK in STATES.items():
                     l = cascaded_union(l)
                 polygons_[i]['polygon'] = l.convex_hull
                 polygons_[i]['y'].extend(polygons_[k]['y'])
+                polygons_[i]['highest'].extend(polygons_[k]['highest'])
                 polygons_[i]['total'] += polygons_[k]['total']
                 processed.add(k)
 
