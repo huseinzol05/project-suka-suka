@@ -129,9 +129,11 @@
         Click on any polygons to get average case and area covered in km^2. Click on any emergency icons to get
         highest case and address.
     </p>
+    <label>Choose a date:</label>
+    <select id="dates">
+    </select>
 
-    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
-
+    <label>Choose a state:</label>
     <select id="states">
         <option value="kl">Federal Territory of Kuala Lumpur</option>
         <option value="sabah">Sabah</option>
@@ -169,6 +171,7 @@
 <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJb3p7pPWwcgLuLh7np6W8B3-tPjpf35k&libraries=places"></script>
 <script>
+
 
     (function () {
 
@@ -327,16 +330,32 @@
         });
     })();
 
-    $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+    // $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+    //     dataType: 'json',
+    //     timeout: 5000,
+    //     success: function (data, status, xhr) {
+    //         $("#last-update").text(data['last-update'])
+    //     },
+    //     error: function (jqXhr, textStatus, errorMessage) {
+    //         $("#last-update").text('2021-06-15')
+    //     }
+    // });
+
+    url = 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot'
+
+    $.ajax(url + '/dates.json', {
+        async: false,
         dataType: 'json',
-        timeout: 5000,
+        timeout: 2000,
         success: function (data, status, xhr) {
-            $("#last-update").text(data['last-update'])
+            for (var i = 0; i < data['date'].length; i++) {
+                $('#dates').append($('<option>', { value: data['date'][i], text: data['date'][i] }));
+            }
+
         },
         error: function (jqXhr, textStatus, errorMessage) {
-            $("#last-update").text('2021-06-15')
         }
-    });
+    })
 
     zoom = {
         'kl': 11.5,
@@ -376,21 +395,21 @@
     }
 
     data = {
-        'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
-        'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
-        'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
-        'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
-        'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
-        'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
-        'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
-        'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
-        'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
-        'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
-        'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
-        'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-        'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
-        'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
-        'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
+        'kl': 'kl.json',
+        'sabah': 'sabah.json',
+        'putrajaya': 'putrajaya.json',
+        'kedah': 'kedah.json',
+        'sarawak': 'sarawak.json',
+        'penang': 'penang.json',
+        'johor': 'johor.json',
+        'kelantan': 'kelantan.json',
+        'melaka': 'melaka.json',
+        'negeri-sembilan': 'negeri-sembilan.json',
+        'pahang': 'pahang.json',
+        'perak': 'perak.json',
+        'selangor': 'selangor.json',
+        'terengganu': 'terengganu.json',
+        'labuan': 'labuan.json'
     }
 
     function sortFloat(a, b) { return a[0] - b[0]; };
@@ -460,6 +479,7 @@
     function init() {
 
         s = $("#states").val()
+        d = $("#dates").val()
         mymap.setView([center[s][0], center[s][1]], zoom[s]);
 
         polygons.forEach((polygon) => {
@@ -476,7 +496,7 @@
         max_colors = { '#ffff00': 0, '#ffa500': 0, '#FF0000': 0 }
 
 
-        $.ajax(data[s], {
+        $.ajax(url + '/' + d + '/' + data[s], {
             dataType: 'json',
             timeout: 5000,
             success: function (data, status, xhr) {
@@ -570,6 +590,9 @@
     init();
 
     $('#states').on('change', function () {
+        init();
+    });
+    $('#dates').on('change', function () {
         init();
     });
 
