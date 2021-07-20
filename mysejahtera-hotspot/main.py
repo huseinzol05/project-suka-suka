@@ -11,11 +11,13 @@ from geopandas import GeoDataFrame
 from libpysal.cg.alpha_shapes import alpha_shape_auto
 from sklearn.cluster import DBSCAN
 from datetime import datetime, date
+from glob import glob
 import urllib.parse
 import libpysal as lps
 import numpy as np
 import os
 import copy
+import re
 
 today = str(date.today())
 today
@@ -92,6 +94,7 @@ def check_boundaries(v):
             return i
 
 
+os.mkdir(today)
 for STATE, LINK in STATES.items():
     print(STATE, LINK)
     file = urllib.parse.unquote(LINK.split('/')[-1])
@@ -225,10 +228,15 @@ for STATE, LINK in STATES.items():
         post[i]['polygon'] = polygons_
         post[i]['area'] = area
 
-    with open(f'data/{STATE}.json', 'w') as fopen:
+    with open(f'{today}/{STATE}.json', 'w') as fopen:
         json.dump(post, fopen)
 
     os.remove(file)
 
 with open('last-update.json', 'w') as fopen:
     json.dump({'last-update': today}, fopen)
+
+files = glob('*')
+folders = [f for f in files if len(re.findall("\d{4}-\d{2}-\d{2}", f))]
+with open('dates.json', 'w') as fopen:
+    json.dump({'date': sorted(folders, reverse=True)}, fopen)
