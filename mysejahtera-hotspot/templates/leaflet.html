@@ -126,11 +126,14 @@
         Get the code and data at
         <a
             href="https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot">https://github.com/huseinzol05/project-suka-suka/tree/main/mysejahtera-hotspot</a>.
-        Click on any polygons to get average case and area covered in km^2.
+        Click on any polygons to get average case and area covered in km^2. Click on any emergency icons to get
+        highest case and address.
     </p>
+    <label>Choose a date:</label>
+    <select id="dates">
+    </select>
 
-    <label>Last update, <span id="last-update"></span>, Choose a state:</label>
-
+    <label>Choose a state:</label>
     <select id="states">
         <option value="kl">Federal Territory of Kuala Lumpur</option>
         <option value="sabah">Sabah</option>
@@ -168,6 +171,7 @@
 <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJb3p7pPWwcgLuLh7np6W8B3-tPjpf35k&libraries=places"></script>
 <script>
+
 
     (function () {
 
@@ -326,16 +330,32 @@
         });
     })();
 
-    $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+    // $.ajax("https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/last-update.json", {
+    //     dataType: 'json',
+    //     timeout: 5000,
+    //     success: function (data, status, xhr) {
+    //         $("#last-update").text(data['last-update'])
+    //     },
+    //     error: function (jqXhr, textStatus, errorMessage) {
+    //         $("#last-update").text('2021-06-15')
+    //     }
+    // });
+
+    url = 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot'
+
+    $.ajax(url + '/dates.json', {
+        async: false,
         dataType: 'json',
-        timeout: 5000,
+        timeout: 2000,
         success: function (data, status, xhr) {
-            $("#last-update").text(data['last-update'])
+            for (var i = 0; i < data['date'].length; i++) {
+                $('#dates').append($('<option>', { value: data['date'][i], text: data['date'][i] }));
+            }
+
         },
         error: function (jqXhr, textStatus, errorMessage) {
-            $("#last-update").text('2021-06-15')
         }
-    });
+    })
 
     zoom = {
         'kl': 11.5,
@@ -375,25 +395,31 @@
     }
 
     data = {
-        'kl': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kl.json',
-        'sabah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sabah.json',
-        'putrajaya': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/putrajaya.json',
-        'kedah': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kedah.json',
-        'sarawak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/sarawak.json',
-        'penang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/penang.json',
-        'johor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/johor.json',
-        'kelantan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/kelantan.json',
-        'melaka': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/melaka.json',
-        'negeri-sembilan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/negeri-sembilan.json',
-        'pahang': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/pahang.json',
-        'perak': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/perak.json',
-        'selangor': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/selangor.json',
-        'terengganu': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/terengganu.json',
-        'labuan': 'https://raw.githubusercontent.com/huseinzol05/project-suka-suka/main/mysejahtera-hotspot/data/labuan.json'
+        'kl': 'kl.json',
+        'sabah': 'sabah.json',
+        'putrajaya': 'putrajaya.json',
+        'kedah': 'kedah.json',
+        'sarawak': 'sarawak.json',
+        'penang': 'penang.json',
+        'johor': 'johor.json',
+        'kelantan': 'kelantan.json',
+        'melaka': 'melaka.json',
+        'negeri-sembilan': 'negeri-sembilan.json',
+        'pahang': 'pahang.json',
+        'perak': 'perak.json',
+        'selangor': 'selangor.json',
+        'terengganu': 'terengganu.json',
+        'labuan': 'labuan.json'
     }
 
     function sortFloat(a, b) { return a[0] - b[0]; };
     let argsort = a => a.map((v, i) => [v, i]).sort(sortFloat).map(i => i[1]);
+
+    var emergencyIcon = L.icon({
+        iconUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/15-healthcare-and-medical/emergency.png',
+
+        iconSize: [12, 12],
+    });
 
     var mymap = L.map('map');
     var marker;
@@ -401,6 +427,7 @@
     polygons = [];
     cases = [];
     areas = [];
+    markers = [];
 
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         maxZoom: 18,
@@ -421,13 +448,45 @@
         }
     }).addTo(mymap);
 
+    function onClick(e) {
+        var popup = e.target.getPopup();
+        console.log(popup);
+        latlong = this.getLatLng()
+        lat = latlong.lat
+        long = latlong.lng
+
+        nominatim = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + long + '&format=json'
+        address = 'Not available'
+        $.ajax(nominatim, {
+            async: false,
+            dataType: 'json',
+            timeout: 2000,
+            success: function (data, status, xhr) {
+                try { address = data['display_name'] }
+                catch (err) { console.log(err) }
+
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+            }
+        })
+        latlong_string = 'Lat: ' + lat + ', ' + 'Long: ' + long + '<br>'
+        address_string = address + '<br>'
+        case_string = 'Total case: ' + this.options.case.toString()
+        popup.setContent(latlong_string + address_string + case_string);
+        popup.update();
+    }
+
     function init() {
 
         s = $("#states").val()
+        d = $("#dates").val()
         mymap.setView([center[s][0], center[s][1]], zoom[s]);
 
         polygons.forEach((polygon) => {
             polygon.remove()
+        });
+        markers.forEach((marker) => {
+            marker.remove()
         });
         if (legend != null) legend.remove();
         polygons = [];
@@ -437,7 +496,7 @@
         max_colors = { '#ffff00': 0, '#ffa500': 0, '#FF0000': 0 }
 
 
-        $.ajax(data[s], {
+        $.ajax(url + '/' + d + '/' + data[s], {
             dataType: 'json',
             timeout: 5000,
             success: function (data, status, xhr) {
@@ -480,6 +539,20 @@
                         max_colors[data[i]['color']] = data[i]['y']
                     }
 
+                    if (data[i]['color'] == '#FF0000') {
+                        for (var k = 0; k < data[i]['highest'].length; k++) {
+                            if (data[i]['highest'][k][2] > 3) {
+                                latlong = [data[i]['highest'][k][0], data[i]['highest'][k][1]]
+                                marker = L.marker(latlong, { icon: emergencyIcon, case: data[i]['highest'][k][2] })
+                                marker.addTo(mymap)
+                                marker.bindPopup('loading..')
+                                marker.on('click', onClick);
+                                markers.push(marker)
+                            }
+
+                        }
+                    }
+
                 }
 
                 cases = argsort(cases);
@@ -493,6 +566,7 @@
                 legend.onAdd = function (map) {
 
                     var div = L.DomUtil.create('div', 'info legend');
+                    div.innerHTML += '<i><img src="https://uxwing.com/wp-content/themes/uxwing/download/15-healthcare-and-medical/emergency.png" width="100%"></i>High case<br>';
                     div.innerHTML +=
                         '<i style="background:rgb(255, 255, 0)"></i> ' +
                         min_colors['#ffff00'].toFixed(1) + '&ndash;' + max_colors['#ffff00'].toFixed(1) + '<br>';
@@ -516,6 +590,9 @@
     init();
 
     $('#states').on('change', function () {
+        init();
+    });
+    $('#dates').on('change', function () {
         init();
     });
 
