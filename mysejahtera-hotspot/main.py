@@ -48,7 +48,7 @@ COLOR = {0: '#0000FF', 1: '#0000FF', 2: '#0000FF', 3: '#0000FF',
 COLORS = ['#0000FF', '#FFFF00', '#FF0000']
 STEP = 0.05
 DEFAULT_DISTANCE = 0.0045
-DISTANCES = {'sabah': 0.0075, 'sarawak': 0.0085}
+DISTANCES = {'sabah': 0.0075, 'sarawak': 0.0085, 'pahang': 0.0075}
 
 
 def get_cluster_boundary(labels, xys, scores, xy=["X", "Y"], crs=None, step=1):
@@ -94,7 +94,7 @@ def check_boundaries(v):
             return i
 
 
-os.mkdir(today)
+os.makedirs(today, exist_ok=True)
 for STATE, LINK in STATES.items():
     print(STATE, LINK)
     file = urllib.parse.unquote(LINK.split('/')[-1])
