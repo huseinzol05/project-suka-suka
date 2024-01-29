@@ -2,6 +2,8 @@
 
 Generate polygons and simple simulation using MySejahtera Density data. https://huseinhouse.com/mysejahtera-simulation/
 
+<img src="selangor.gif" width="50%">
+
 ## how-to
 
 1. Run [selangor-simulation-vaccines.ipynb](selangor-simulation-vaccines.ipynb).
